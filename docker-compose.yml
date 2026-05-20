@@ -37,7 +37,7 @@ services:
     networks:
       - swiftride_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-swiftride}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-swiftride} -d swiftride_gateway_db"]
       interval: 10s
       timeout: 5s
       retries: 5

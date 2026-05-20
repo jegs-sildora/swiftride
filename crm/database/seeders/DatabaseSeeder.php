@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
                 'postal_code' => '1000',
                 'country' => 'Philippines',
                 'status' => 'active',
+                'loyalty_tier' => 'GOLD',
+                'loyalty_points' => 1250,
+                'government_id_verified' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -40,6 +43,9 @@ class DatabaseSeeder extends Seeder
                 'postal_code' => '1100',
                 'country' => 'Philippines',
                 'status' => 'active',
+                'loyalty_tier' => 'SILVER',
+                'loyalty_points' => 450,
+                'government_id_verified' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -55,6 +61,9 @@ class DatabaseSeeder extends Seeder
                 'postal_code' => '1008',
                 'country' => 'Philippines',
                 'status' => 'active',
+                'loyalty_tier' => 'BRONZE',
+                'loyalty_points' => 50,
+                'government_id_verified' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -70,6 +79,9 @@ class DatabaseSeeder extends Seeder
                 'postal_code' => '2600',
                 'country' => 'Philippines',
                 'status' => 'active',
+                'loyalty_tier' => 'SILVER',
+                'loyalty_points' => 320,
+                'government_id_verified' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -85,6 +97,9 @@ class DatabaseSeeder extends Seeder
                 'postal_code' => '6000',
                 'country' => 'Philippines',
                 'status' => 'active',
+                'loyalty_tier' => 'BRONZE',
+                'loyalty_points' => 0,
+                'government_id_verified' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -92,6 +107,30 @@ class DatabaseSeeder extends Seeder
 
         foreach ($customers as $c) {
             DB::table('customers')->updateOrInsert(['id' => $c['id']], $c);
+        }
+
+        // Seeding Documents
+        $documents = [
+            [
+                'id' => 1,
+                'customer_id' => 1,
+                'document_type' => 'PASSPORT_SCAN',
+                'file_path' => 'customer_documents/passport_juan.jpg',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'customer_id' => 2,
+                'document_type' => 'GOVERNMENT_ID',
+                'file_path' => 'customer_documents/national_id_maria.png',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        foreach ($documents as $doc) {
+            DB::table('customer_documents')->updateOrInsert(['id' => $doc['id']], $doc);
         }
 
         $licenses = [

@@ -22,11 +22,41 @@ class Customer extends Model
         'postal_code',
         'country',
         'status',
+        'loyalty_tier',
+        'loyalty_points',
+        'government_id_verified',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'loyalty_points'         => 'integer',
+            'government_id_verified' => 'boolean',
+        ];
+    }
 
     public function driverLicenses(): HasMany
     {
         return $this->hasMany(DriverLicense::class);
+    }
+
+    public function customerDocuments(): HasMany
+    {
+        return $this->hasMany(CustomerDocument::class);
+    }
+
+    /**
+     * Get discount percentage based on loyalty tier.
+     */
+    public function getDiscountPercentage(): float
+    {
+        $tier = strtoupper($this->loyalty_tier);
+        if ($tier === 'SILVER') {
+            return 0.05;
+        } elseif ($tier === 'GOLD') {
+            return 0.10;
+        }
+        return 0.00;
     }
 
     /**

@@ -9,7 +9,7 @@ import BillingService from '../services/billingService';
 import { useToast } from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import SearchableDropdown from '../components/SearchableDropdown';
-import { Home, Truck, Users, Calendar, CreditCard, Plus, LogOut, Check, X, Wrench, FileText, DollarSign, Car, Shield, Clock, MoreVertical, Edit, Trash } from '../components/Icons';
+import { Home, Truck, Users, Calendar, CreditCard, Plus, LogOut, Check, X, Wrench, FileText, DollarSign, Car, Shield, Clock, MoreVertical, Edit, Trash, AlertTriangle, Loader } from '../components/Icons';
 
 const POPULAR_MAKES = ["TOYOTA", "NISSAN", "MITSUBISHI", "HONDA", "FORD", "MAZDA", "ISUZU", "SUZUKI", "HYUNDAI", "KIA", "MG", "BYD"];
 const POPULAR_MODELS = ["VIOS", "CIVIC", "MONTERO SPORT", "FORTUNER", "ALMERA", "NAVARA", "EVEREST", "HIACE", "ERTIGA", "MU-X", "CITY", "ACCORD"];
@@ -66,10 +66,33 @@ export default function DashboardPage() {
     confirmLabel: 'Confirm', loading: false, onConfirm: () => {}
   });
 
+  // Simulated Role State
+  const [simulatedRole, setSimulatedRole] = useState(() => localStorage.getItem("swiftride_simulated_role") || "");
+
+  // New Modals UI States
+  const [showInspectionsModal, setShowInspectionsModal] = useState(false);
+  const [selectedVehicleForInspections, setSelectedVehicleForInspections] = useState(null);
+  const [inspectionsList, setInspectionsList] = useState([]);
+  const [loadingInspections, setLoadingInspections] = useState(false);
+
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [selectedCustomerForDocs, setSelectedCustomerForDocs] = useState(null);
+  const [documentsList, setDocumentsList] = useState([]);
+  const [loadingDocs, setLoadingDocs] = useState(false);
+
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedInvoiceForReceipt, setSelectedInvoiceForReceipt] = useState(null);
+  const [receiptDetails, setReceiptDetails] = useState(null);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [selectedInvoiceForRefund, setSelectedInvoiceForRefund] = useState(null);
+
   // Form states
   const [vehicleForm, setVehicleForm] = useState({
     make: "", model: "", year: new Date().getFullYear(),
-    plate_number: "", color: "", type: "car", status: "available", daily_rate: ""
+    plate_number: "", color: "", type: "car", status: "available", daily_rate: "",
+    current_odometer: "", fuel_tank_capacity_liters: "50", insurance_policy_number: "", insurance_expiry_date: ""
   });
   const [customerForm, setCustomerForm] = useState({
     first_name: "", last_name: "", email: "", phone: "",
@@ -80,13 +103,35 @@ export default function DashboardPage() {
     issuing_authority: "", license_class: "B"
   });
   const [bookingForm, setBookingForm] = useState({
-    customer_id: "", vehicle_id: "", start_date: "", end_date: "", notes: ""
+    customer_id: "", vehicle_id: "", start_date: "", end_date: "", notes: "",
+    pickup_location_id: "1", return_location_id: "1",
+    addon_gps: false, addon_wifi: false, addon_driver: false
   });
   const [paymentForm, setPaymentForm] = useState({
     invoice_id: "", amount_paid: "", payment_method: "Cash"
   });
   const [invoiceForm, setInvoiceForm] = useState({
     amount: "", due_date: "", notes: ""
+  });
+
+  const [inspectionForm, setInspectionForm] = useState({
+    booking_id: "",
+    inspection_type: "checkout",
+    odometer_reading: "",
+    fuel_level_percent: "100",
+    body_damage_notes: "",
+    interior_clean_status: "EXCELLENT",
+    safety_check_passed: true
+  });
+  const [documentForm, setDocumentForm] = useState({
+    document_type: "LICENSE_PHOTO",
+    s3_file_path: ""
+  });
+  const [refundForm, setRefundForm] = useState({
+    refund_amount: "",
+    refund_method: "GCASH",
+    notes: "",
+    reference_code: ""
   });
 
   // Confirm modal helpers
@@ -105,6 +150,10 @@ export default function DashboardPage() {
         setShowAddBooking(false);
         setShowRecordPayment(false);
         setShowEditInvoice(false);
+        setShowInspectionsModal(false);
+        setShowDocumentsModal(false);
+        setShowReceiptModal(false);
+        setShowRefundModal(false);
       }
     };
     window.addEventListener('keydown', handleEscape);
@@ -283,7 +332,10 @@ export default function DashboardPage() {
     setShowAddVehicle(false);
     setIsEditing(false);
     setEditingId(null);
-    setVehicleForm({ make: "", model: "", year: new Date().getFullYear(), plate_number: "", color: "", type: "car", status: "available", daily_rate: "" });
+    setVehicleForm({
+      make: "", model: "", year: new Date().getFullYear(), plate_number: "", color: "", type: "car", status: "available", daily_rate: "",
+      current_odometer: "", fuel_tank_capacity_liters: "50", insurance_policy_number: "", insurance_expiry_date: ""
+    });
   };
 
   const handleCloseAddCustomer = () => {
@@ -297,7 +349,11 @@ export default function DashboardPage() {
     setShowAddBooking(false);
     setIsEditing(false);
     setEditingId(null);
-    setBookingForm({ customer_id: "", vehicle_id: "", start_date: "", end_date: "", notes: "" });
+    setBookingForm({
+      customer_id: "", vehicle_id: "", start_date: "", end_date: "", notes: "",
+      pickup_location_id: "1", return_location_id: "1",
+      addon_gps: false, addon_wifi: false, addon_driver: false
+    });
   };
 
   const handleCloseEditInvoice = () => {
@@ -316,7 +372,11 @@ export default function DashboardPage() {
       color: v.color || "",
       type: v.type || "car",
       status: v.status || "available",
-      daily_rate: v.daily_rate || ""
+      daily_rate: v.daily_rate || "",
+      current_odometer: v.current_odometer || "",
+      fuel_tank_capacity_liters: v.fuel_tank_capacity_liters || "50",
+      insurance_policy_number: v.insurance_policy_number || "",
+      insurance_expiry_date: v.insurance_expiry_date || ""
     });
     setIsEditing(true);
     setEditingId(v.id);
@@ -341,12 +401,22 @@ export default function DashboardPage() {
   };
 
   const handleEditBooking = (b) => {
+    // Determine which addons are checked
+    const hasGPS = b.booking_addons?.some(a => a.addon_type === 'GPS_PREMIUM') || false;
+    const hasWiFi = b.booking_addons?.some(a => a.addon_type === 'WIFI_ROUTER') || false;
+    const hasDriver = b.booking_addons?.some(a => a.addon_type === 'PERSONAL_DRIVER') || false;
+
     setBookingForm({
       customer_id: b.customer_id || "",
       vehicle_id: b.vehicle_id || "",
       start_date: b.start_date ? b.start_date.substring(0, 10) : "",
       end_date: b.end_date ? b.end_date.substring(0, 10) : "",
-      notes: b.notes || ""
+      notes: b.notes || "",
+      pickup_location_id: String(b.pickup_location_id || "1"),
+      return_location_id: String(b.return_location_id || "1"),
+      addon_gps: hasGPS,
+      addon_wifi: hasWiFi,
+      addon_driver: hasDriver
     });
     setIsEditing(true);
     setEditingId(b.id);
@@ -588,161 +658,299 @@ export default function DashboardPage() {
     fetchData();
   }, [activeTab]);
 
+  const getActiveRole = () => {
+    return (simulatedRole || currentUser?.role?.name || 'staff').toLowerCase();
+  };
+
+  const isTabVisible = (tab) => {
+    const role = getActiveRole();
+    if (role === 'admin' || role === 'administrator') return true;
+    if (tab === 'overview') return true;
+    if (role === 'accountant') {
+      return tab === 'billing';
+    }
+    if (role === 'mechanic' || role === 'maintenance' || role === 'maintenance engineer') {
+      return tab === 'fleet';
+    }
+    if (role === 'dispatcher') {
+      return tab === 'fleet' || tab === 'crm' || tab === 'bookings';
+    }
+    return true;
+  };
+
+  const getHubName = (id) => {
+    switch (String(id)) {
+      case '1': return 'Manila Hub';
+      case '2': return 'NAIA Airport T3 Hub';
+      case '3': return 'Cebu Hub';
+      case '4': return 'Davao Hub';
+      default: return `Hub #${id}`;
+    }
+  };
+
+  // Redirect to overview if active tab is restricted on role switch
+  useEffect(() => {
+    if (!isTabVisible(activeTab)) {
+      setActiveTab("overview");
+    }
+  }, [simulatedRole, currentUser]);
+
   return (
     <div className="app-layout">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <img 
-              src="/logo.png" 
-              alt="SwiftRide Logo" 
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 8,
-                objectFit: 'contain',
-                background: 'transparent'
-              }} 
-            />
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
-              SwiftRide ERP
-            </h2>
-          </div>
-          <button 
-            type="button"
-            onClick={toggleTheme} 
-            className="theme-switch-track"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {/* Sun Icon */}
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="3.5" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              style={{ 
-                color: theme === 'light' ? '#ffffff' : 'var(--text-muted)',
-                zIndex: 2,
-                marginLeft: '2px',
-                transition: 'color 0.3s ease'
-              }}
-            >
-              <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-
-            {/* Moon Icon */}
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="3" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              style={{ 
-                color: theme === 'dark' ? '#ffffff' : 'var(--text-muted)',
-                zIndex: 2,
-                marginRight: '2px',
-                transition: 'color 0.3s ease'
-              }}
-            >
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-
-            <span className="theme-switch-thumb" />
-          </button>
-
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
+          <img 
+            src="/logo.png" 
+            alt="SwiftRide Logo" 
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 8,
+              objectFit: 'contain',
+              background: 'transparent'
+            }} 
+          />
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+            SwiftRide ERP
+          </h2>
         </div>
-
-        {currentUser && (
-          <div style={{ padding: '0.75rem', borderRadius: 8, background: theme === 'light' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div className="user-avatar">
-                {currentUser.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{currentUser.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--primary)', textTransform: 'capitalize' }}>{currentUser.role?.name || 'staff'}</div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <nav style={{ flexGrow: 1 }}>
           <ul className="nav-list">
-            <li>
-              <a href="#" className={`nav-link ${activeTab === "overview" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("overview"); }}>
-                <Home size={18} />
-                Overview
-              </a>
-            </li>
-            <li>
-              <a href="#" className={`nav-link ${activeTab === "fleet" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("fleet"); }}>
-                <Truck size={18} />
-                Fleet Manager
-              </a>
-            </li>
-            <li>
-              <a href="#" className={`nav-link ${activeTab === "crm" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("crm"); }}>
-                <Users size={18} />
-                Customer Directory
-              </a>
-            </li>
-            <li>
-              <a href="#" className={`nav-link ${activeTab === "bookings" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("bookings"); }}>
-                <Calendar size={18} />
-                Bookings
-              </a>
-            </li>
-            <li>
-              <a href="#" className={`nav-link ${activeTab === "billing" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("billing"); }}>
-                <CreditCard size={18} />
-                Billing & Accounts
-              </a>
-            </li>
+            {isTabVisible("overview") && (
+              <li>
+                <a href="#" className={`nav-link ${activeTab === "overview" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("overview"); }}>
+                  <Home size={18} />
+                  Overview
+                </a>
+              </li>
+            )}
+            {isTabVisible("fleet") && (
+              <li>
+                <a href="#" className={`nav-link ${activeTab === "fleet" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("fleet"); }}>
+                  <Truck size={18} />
+                  Fleet Manager
+                </a>
+              </li>
+            )}
+            {isTabVisible("crm") && (
+              <li>
+                <a href="#" className={`nav-link ${activeTab === "crm" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("crm"); }}>
+                  <Users size={18} />
+                  Customer Directory
+                </a>
+              </li>
+            )}
+            {isTabVisible("bookings") && (
+              <li>
+                <a href="#" className={`nav-link ${activeTab === "bookings" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("bookings"); }}>
+                  <Calendar size={18} />
+                  Bookings
+                </a>
+              </li>
+            )}
+            {isTabVisible("billing") && (
+              <li>
+                <a href="#" className={`nav-link ${activeTab === "billing" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("billing"); }}>
+                  <CreditCard size={18} />
+                  Billing & Accounts
+                </a>
+              </li>
+            )}
           </ul>
         </nav>
-
-        <button onClick={handleLogoutClick} className="btn-secondary" style={{ width: "100%", justifyContent: "center" }}>
-          <LogOut size={18} /> Sign Out
-        </button>
       </aside>
 
       {/* Main View Area */}
       <main className="main-content" style={{ position: "relative" }}>
-        {loading && (
-          <div style={{
-            position: 'absolute',
-            top: '1.5rem',
-            right: '2rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '20px',
-            background: theme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid var(--border-color)',
-            fontSize: '0.75rem',
-            color: 'var(--text-secondary)',
-            animation: 'pulse 2s infinite ease-in-out',
-            zIndex: 10
-          }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: 'var(--primary)',
-              animation: 'spin 1s infinite linear'
-            }} />
-            Refreshing data...
+        {/* Global Dashboard Header */}
+        <header className="global-header" style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingBottom: "1.25rem",
+          borderBottom: "1px solid var(--border-color)",
+          marginBottom: "2rem",
+          flexShrink: 0
+        }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)" }}>
+              SwiftRide Operations
+            </span>
+            <span style={{ fontSize: "1.25rem", fontWeight: "700", color: "var(--text-primary)" }}>
+              {activeTab === "overview" && "Dashboard Overview"}
+              {activeTab === "fleet" && "Fleet Manager"}
+              {activeTab === "crm" && "Customer Directory"}
+              {activeTab === "bookings" && "Rental Bookings"}
+              {activeTab === "billing" && "Billing & Accounts"}
+            </span>
           </div>
-        )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            {/* Elegant Header Loading Indicator */}
+            {loading && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.4rem 0.75rem',
+                borderRadius: '20px',
+                background: theme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-color)',
+                fontSize: '0.75rem',
+                color: 'var(--text-secondary)',
+                animation: 'pulse 2s infinite ease-in-out'
+              }}>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: 'var(--primary)',
+                  animation: 'spin 1s infinite linear'
+                }} />
+                Updating...
+              </div>
+            )}
+
+            {/* Dark/Light mode switch */}
+            <button 
+              type="button"
+              onClick={toggleTheme} 
+              className="theme-switch-track"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {/* Sun Icon */}
+              <svg 
+                width="12" 
+                height="12" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="3.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ 
+                  color: theme === 'light' ? '#ffffff' : 'var(--text-muted)',
+                  zIndex: 2,
+                  marginLeft: '2px',
+                  transition: 'color 0.3s ease'
+                }}
+              >
+                <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+
+              {/* Moon Icon */}
+              <svg 
+                width="12" 
+                height="12" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ 
+                  color: theme === 'dark' ? '#ffffff' : 'var(--text-muted)',
+                  zIndex: 2,
+                  marginRight: '2px',
+                  transition: 'color 0.3s ease'
+                }}
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+
+              <span className="theme-switch-thumb" />
+            </button>
+
+            {/* Elegant Role Simulator Dropdown */}
+            {currentUser && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Simulate:</span>
+                <select
+                  value={simulatedRole}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSimulatedRole(val);
+                    if (val) {
+                      localStorage.setItem("swiftride_simulated_role", val);
+                    } else {
+                      localStorage.removeItem("swiftride_simulated_role");
+                    }
+                    toast.success(`Role simulated: ${val ? val.toUpperCase() : 'DEFAULT'}`);
+                    fetchData();
+                  }}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '6px',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s'
+                  }}
+                >
+                  <option value="">Default ({currentUser?.role?.name || 'staff'})</option>
+                  <option value="admin">Administrator</option>
+                  <option value="dispatcher">Dispatcher</option>
+                  <option value="mechanic">Mechanic</option>
+                  <option value="accountant">Accountant</option>
+                </select>
+              </div>
+            )}
+
+            {/* User Profile Card */}
+            {currentUser && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingLeft: '1.25rem', borderLeft: '1px solid var(--border-color)' }}>
+                <div className="user-avatar" style={{ margin: 0 }}>
+                  {currentUser.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)', lineHeight: 1.2 }}>{currentUser.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--primary)', textTransform: 'capitalize', lineHeight: 1.2 }}>
+                    {simulatedRole ? `Sim: ${simulatedRole}` : (currentUser.role?.name || 'staff')}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Premium Sign Out Icon Button */}
+            <button 
+              type="button"
+              onClick={handleLogoutClick}
+              title="Sign Out"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'transparent',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                padding: 0
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--danger)';
+                e.currentTarget.style.borderColor = 'var(--danger)';
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        </header>
 
         {/* Overview View */}
         {activeTab === "overview" && (
@@ -871,6 +1079,9 @@ export default function DashboardPage() {
                         <th>Plate No.</th>
                         <th>Color</th>
                         <th>Type</th>
+                        <th>Odometer</th>
+                        <th>Fuel Cap.</th>
+                        <th>Insurance</th>
                         <th>Daily Rate</th>
                         <th>Status</th>
                         <th style={{ textAlign: "right" }}>Actions</th>
@@ -887,6 +1098,18 @@ export default function DashboardPage() {
                           <td><code>{v.plate_number}</code></td>
                           <td>{v.color || "—"}</td>
                           <td>{v.type}</td>
+                          <td>{v.current_odometer ? `${parseInt(v.current_odometer).toLocaleString()} KM` : "—"}</td>
+                          <td>{v.fuel_tank_capacity_liters ? `${v.fuel_tank_capacity_liters} L` : "—"}</td>
+                          <td>
+                            {v.insurance_policy_number ? (
+                              <div style={{ fontSize: "0.8rem" }}>
+                                <div><code>{v.insurance_policy_number}</code></div>
+                                <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                                  Exp: {formatManilaDate(v.insurance_expiry_date)}
+                                </div>
+                              </div>
+                            ) : "—"}
+                          </td>
                           <td>₱{parseFloat(v.daily_rate || 0).toLocaleString()}</td>
                           <td>
                             <span className={`badge ${
@@ -956,6 +1179,7 @@ export default function DashboardPage() {
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Loyalty Program</th>
                         <th>Location</th>
                         <th>Status</th>
                         <th style={{ textAlign: "right" }}>Actions</th>
@@ -968,6 +1192,19 @@ export default function DashboardPage() {
                           <td style={{ fontWeight: "bold" }}>{c.first_name} {c.last_name}</td>
                           <td>{c.email}</td>
                           <td>{c.phone || "—"}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span className={`badge ${
+                                c.loyalty_tier === 'gold' ? 'badge-warning' : 
+                                c.loyalty_tier === 'silver' ? 'badge-info' : 'badge-secondary'
+                              }`} style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                                {c.loyalty_tier || 'bronze'}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                {c.loyalty_points || 0} pts
+                              </span>
+                            </div>
+                          </td>
                           <td>{c.city ? `${c.city}, ${c.country}` : "—"}</td>
                           <td>
                             <span className={`badge ${
@@ -1059,6 +1296,8 @@ export default function DashboardPage() {
                         <th>Vehicle</th>
                         <th>Start Date</th>
                         <th>End Date</th>
+                        <th>Route (Hubs)</th>
+                        <th>Deposit</th>
                         <th>Total Cost</th>
                         <th>Status</th>
                         <th style={{ textAlign: "right" }}>Actions</th>
@@ -1072,7 +1311,33 @@ export default function DashboardPage() {
                           <td>{getVehicleName(b.vehicle_id)}</td>
                           <td>{formatManilaDateTime(b.start_date)}</td>
                           <td>{formatManilaDateTime(b.end_date)}</td>
-                          <td style={{ fontWeight: "bold" }}>₱{parseFloat(b.total_cost || 0).toLocaleString()}</td>
+                          <td>
+                            <div style={{ fontSize: '0.8rem' }}>
+                              <div><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>→</span> {getHubName(b.pickup_location_id || 1)}</div>
+                              <div><span style={{ color: 'var(--success)', fontWeight: 'bold' }}>←</span> {getHubName(b.return_location_id || 1)}</div>
+                            </div>
+                          </td>
+                          <td>
+                            {b.security_deposit_amount ? (
+                              <div style={{ fontSize: '0.8rem' }}>
+                                <div>₱{parseFloat(b.security_deposit_amount).toLocaleString()}</div>
+                                <span className={`badge ${
+                                  b.security_deposit_status === 'refunded' ? 'badge-success' :
+                                  b.security_deposit_status === 'held' ? 'badge-warning' : 'badge-danger'
+                                }`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.3rem' }}>
+                                  {b.security_deposit_status || 'held'}
+                                </span>
+                              </div>
+                            ) : "—"}
+                          </td>
+                          <td style={{ fontWeight: "bold" }}>
+                            <div>₱{parseFloat(b.total_cost || 0).toLocaleString()}</div>
+                            {b.booking_addons && b.booking_addons.length > 0 && (
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>
+                                + {b.booking_addons.length} Add-on(s)
+                              </div>
+                            )}
+                          </td>
                           <td>
                             <span className={`badge ${
                               b.status === "completed" ? "badge-success" : 
@@ -1259,6 +1524,26 @@ export default function DashboardPage() {
                   allowCustom={true}
                 />
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Current Odometer (KM)</label>
+                  <input type="number" className="input-control" value={vehicleForm.current_odometer} onChange={(e) => setVehicleForm({...vehicleForm, current_odometer: e.target.value})} placeholder="10000" />
+                </div>
+                <div className="form-group">
+                  <label>Fuel Tank Capacity (Liters)</label>
+                  <input type="number" step="0.1" className="input-control" value={vehicleForm.fuel_tank_capacity_liters} onChange={(e) => setVehicleForm({...vehicleForm, fuel_tank_capacity_liters: e.target.value})} placeholder="50" />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Insurance Policy Number</label>
+                  <input className="input-control" value={vehicleForm.insurance_policy_number} onChange={(e) => setVehicleForm({...vehicleForm, insurance_policy_number: e.target.value.toUpperCase()})} placeholder="POL-12345" style={{ textTransform: 'uppercase' }} />
+                </div>
+                <div className="form-group">
+                  <label>Insurance Expiry Date</label>
+                  <input type="date" className="input-control" value={vehicleForm.insurance_expiry_date ? vehicleForm.insurance_expiry_date.substring(0, 10) : ""} onChange={(e) => setVehicleForm({...vehicleForm, insurance_expiry_date: e.target.value})} />
+                </div>
+              </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseAddVehicle} className="btn-secondary">Cancel</button>
                 <button type="submit" className="btn-primary">
@@ -1415,6 +1700,43 @@ export default function DashboardPage() {
                   <input required type="date" className="input-control" value={bookingForm.end_date} onChange={(e) => setBookingForm({...bookingForm, end_date: e.target.value})} />
                 </div>
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Pickup Location Hub</label>
+                  <select className="input-control" value={bookingForm.pickup_location_id} onChange={(e) => setBookingForm({...bookingForm, pickup_location_id: e.target.value})}>
+                    <option value="1">Manila Hub</option>
+                    <option value="2">NAIA Airport T3 Hub</option>
+                    <option value="3">Cebu Hub</option>
+                    <option value="4">Davao Hub</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Return Location Hub</label>
+                  <select className="input-control" value={bookingForm.return_location_id} onChange={(e) => setBookingForm({...bookingForm, return_location_id: e.target.value})}>
+                    <option value="1">Manila Hub</option>
+                    <option value="2">NAIA Airport T3 Hub</option>
+                    <option value="3">Cebu Hub</option>
+                    <option value="4">Davao Hub</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group" style={{ marginBottom: "1rem" }}>
+                <label style={{ marginBottom: "0.5rem", display: "block" }}>Add-on Services (Upsells)</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", background: "var(--bg-card)", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem" }}>
+                    <input type="checkbox" checked={bookingForm.addon_gps} onChange={(e) => setBookingForm({...bookingForm, addon_gps: e.target.checked})} />
+                    GPS Premium Tracker (₱250.00 / day)
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem" }}>
+                    <input type="checkbox" checked={bookingForm.addon_wifi} onChange={(e) => setBookingForm({...bookingForm, addon_wifi: e.target.checked})} />
+                    Portable Pocket Wi-Fi Dongle (₱150.00 / day)
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem" }}>
+                    <input type="checkbox" checked={bookingForm.addon_driver} onChange={(e) => setBookingForm({...bookingForm, addon_driver: e.target.checked})} />
+                    Personal Professional Driver (₱1,500.00 / day)
+                  </label>
+                </div>
+              </div>
               <div className="form-group">
                 <label>Notes</label>
                 <textarea className="input-control" value={bookingForm.notes} onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value.toUpperCase()})} placeholder="SPECIAL REQUESTS..." style={{ height: "80px", resize: "none", textTransform: 'uppercase' }} />
@@ -1520,14 +1842,31 @@ export default function DashboardPage() {
         >
           {activeActionsMenu.type === 'fleet' && (
             <>
+              {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher') && (
+                <button 
+                  onClick={() => {
+                    handleEditVehicle(activeActionsMenu.data);
+                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                  }} 
+                  className="actions-dropdown-item"
+                >
+                  <Edit size={14} /> Edit Vehicle
+                </button>
+              )}
               <button 
                 onClick={() => {
-                  handleEditVehicle(activeActionsMenu.data);
+                  setSelectedVehicleForInspections(activeActionsMenu.data);
+                  setShowInspectionsModal(true);
+                  setLoadingInspections(true);
+                  FleetService.listInspections(activeActionsMenu.data.id)
+                    .then(res => setInspectionsList(res.data?.data || []))
+                    .catch(() => toast.error("Failed to load inspections."))
+                    .finally(() => setLoadingInspections(false));
                   setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
                 }} 
                 className="actions-dropdown-item"
               >
-                <Edit size={14} /> Edit Vehicle
+                <FileText size={14} /> Inspections Log
               </button>
               {activeActionsMenu.data.status !== "available" && (
                 <button 
@@ -1567,165 +1906,220 @@ export default function DashboardPage() {
                   <Wrench size={14} /> Send to Maintenance
                 </button>
               )}
-              <div className="actions-dropdown-divider" />
-              <button 
-                onClick={() => {
-                  handleDeleteVehicle(activeActionsMenu.data.id);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item actions-dropdown-item-danger"
-              >
-                <Trash size={14} /> Delete Vehicle
-              </button>
+              {getActiveRole() === 'admin' && (
+                <>
+                  <div className="actions-dropdown-divider" />
+                  <button 
+                    onClick={() => {
+                      handleDeleteVehicle(activeActionsMenu.data.id);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item actions-dropdown-item-danger"
+                  >
+                    <Trash size={14} /> Delete Vehicle
+                  </button>
+                </>
+              )}
             </>
           )}
 
           {activeActionsMenu.type === 'crm' && (
             <>
+              {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher') && (
+                <>
+                  <button 
+                    onClick={() => {
+                      handleEditCustomer(activeActionsMenu.data);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item"
+                  >
+                    <Edit size={14} /> Edit Customer
+                  </button>
+                  <button 
+                    onClick={() => {
+                      handleVerifyCustomer(activeActionsMenu.data.id);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item"
+                  >
+                    <Shield size={14} /> Verify Eligibility
+                  </button>
+                </>
+              )}
               <button 
                 onClick={() => {
-                  handleEditCustomer(activeActionsMenu.data);
+                  setSelectedCustomerForDocs(activeActionsMenu.data);
+                  setShowDocumentsModal(true);
+                  setLoadingDocs(true);
+                  CrmService.listDocuments(activeActionsMenu.data.id)
+                    .then(res => setDocumentsList(res.data?.data || []))
+                    .catch(() => toast.error("Failed to load documents."))
+                    .finally(() => setLoadingDocs(false));
                   setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
                 }} 
                 className="actions-dropdown-item"
               >
-                <Edit size={14} /> Edit Customer
+                <FileText size={14} /> Document Vault
               </button>
-              <button 
-                onClick={() => {
-                  handleVerifyCustomer(activeActionsMenu.data.id);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item"
-              >
-                <Shield size={14} /> Verify Eligibility
-              </button>
-              <div className="actions-dropdown-divider" />
-              <button 
-                onClick={() => {
-                  handleDeleteCustomer(activeActionsMenu.data.id);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item actions-dropdown-item-danger"
-              >
-                <Trash size={14} /> Delete Customer
-              </button>
+              {getActiveRole() === 'admin' && (
+                <>
+                  <div className="actions-dropdown-divider" />
+                  <button 
+                    onClick={() => {
+                      handleDeleteCustomer(activeActionsMenu.data.id);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item actions-dropdown-item-danger"
+                  >
+                    <Trash size={14} /> Delete Customer
+                  </button>
+                </>
+              )}
             </>
           )}
 
           {activeActionsMenu.type === 'bookings' && (
             <>
-              <button 
-                onClick={() => {
-                  handleEditBooking(activeActionsMenu.data);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item"
-              >
-                <Edit size={14} /> Edit Booking
-              </button>
-              {activeActionsMenu.data.status === "pending" && (
-                <button 
-                  onClick={() => {
-                    openConfirm({
-                      title: 'Confirm Booking',
-                      message: 'Confirm this rental booking?',
-                      confirmLabel: 'Confirm',
-                      onConfirm: async () => {
-                        await handleUpdateBookingStatus(activeActionsMenu.data.id, 'confirmed');
-                        closeConfirm();
-                      }
-                    });
-                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                  }} 
-                  className="actions-dropdown-item"
-                >
-                  <Check size={14} /> Confirm Booking
-                </button>
+              {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher') && (
+                <>
+                  <button 
+                    onClick={() => {
+                      handleEditBooking(activeActionsMenu.data);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item"
+                  >
+                    <Edit size={14} /> Edit Booking
+                  </button>
+                  {activeActionsMenu.data.status === "pending" && (
+                    <button 
+                      onClick={() => {
+                        openConfirm({
+                          title: 'Confirm Booking',
+                          message: 'Confirm this rental booking?',
+                          confirmLabel: 'Confirm',
+                          onConfirm: async () => {
+                            await handleUpdateBookingStatus(activeActionsMenu.data.id, 'confirmed');
+                            closeConfirm();
+                          }
+                        });
+                        setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                      }} 
+                      className="actions-dropdown-item"
+                    >
+                      <Check size={14} /> Confirm Booking
+                    </button>
+                  )}
+                  {activeActionsMenu.data.status === "confirmed" && (
+                    <button 
+                      onClick={() => {
+                        openConfirm({
+                          title: 'Activate Rental',
+                          message: 'Mark this booking as active/rented?',
+                          confirmLabel: 'Activate',
+                          onConfirm: async () => {
+                            await handleUpdateBookingStatus(activeActionsMenu.data.id, 'active');
+                            closeConfirm();
+                          }
+                        });
+                        setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                      }} 
+                      className="actions-dropdown-item"
+                    >
+                      <Clock size={14} /> Activate Rental
+                    </button>
+                  )}
+                  {activeActionsMenu.data.status === "active" && (
+                    <button 
+                      onClick={() => {
+                        openConfirm({
+                          title: 'Complete Booking',
+                          message: 'Complete this booking and generate an invoice?',
+                          confirmLabel: 'Complete',
+                          onConfirm: async () => {
+                            await handleUpdateBookingStatus(activeActionsMenu.data.id, 'completed');
+                            closeConfirm();
+                          }
+                        });
+                        setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                      }} 
+                      className="actions-dropdown-item"
+                    >
+                      <Check size={14} /> Complete Booking
+                    </button>
+                  )}
+                  {activeActionsMenu.data.status !== "completed" && activeActionsMenu.data.status !== "cancelled" && (
+                    <button 
+                      onClick={() => {
+                        openConfirm({
+                          title: 'Cancel Booking',
+                          message: 'Are you sure you want to cancel this booking? This cannot be undone.',
+                          variant: 'danger',
+                          confirmLabel: 'Cancel Booking',
+                          onConfirm: async () => {
+                            await handleUpdateBookingStatus(activeActionsMenu.data.id, 'cancelled');
+                            closeConfirm();
+                          }
+                        });
+                        setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                      }} 
+                      className="actions-dropdown-item actions-dropdown-item-danger"
+                    >
+                      <X size={14} /> Cancel Booking
+                    </button>
+                  )}
+                </>
               )}
-              {activeActionsMenu.data.status === "confirmed" && (
-                <button 
-                  onClick={() => {
-                    openConfirm({
-                      title: 'Activate Rental',
-                      message: 'Mark this booking as active/rented?',
-                      confirmLabel: 'Activate',
-                      onConfirm: async () => {
-                        await handleUpdateBookingStatus(activeActionsMenu.data.id, 'active');
-                        closeConfirm();
-                      }
-                    });
-                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                  }} 
-                  className="actions-dropdown-item"
-                >
-                  <Clock size={14} /> Activate Rental
-                </button>
+              {getActiveRole() === 'admin' && (
+                <>
+                  <div className="actions-dropdown-divider" />
+                  <button 
+                    onClick={() => {
+                      handleDeleteBooking(activeActionsMenu.data.id);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item actions-dropdown-item-danger"
+                  >
+                    <Trash size={14} /> Delete Record
+                  </button>
+                </>
               )}
-              {activeActionsMenu.data.status === "active" && (
-                <button 
-                  onClick={() => {
-                    openConfirm({
-                      title: 'Complete Booking',
-                      message: 'Complete this booking and generate an invoice?',
-                      confirmLabel: 'Complete',
-                      onConfirm: async () => {
-                        await handleUpdateBookingStatus(activeActionsMenu.data.id, 'completed');
-                        closeConfirm();
-                      }
-                    });
-                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                  }} 
-                  className="actions-dropdown-item"
-                >
-                  <Check size={14} /> Complete Booking
-                </button>
-              )}
-              {activeActionsMenu.data.status !== "completed" && activeActionsMenu.data.status !== "cancelled" && (
-                <button 
-                  onClick={() => {
-                    openConfirm({
-                      title: 'Cancel Booking',
-                      message: 'Are you sure you want to cancel this booking? This cannot be undone.',
-                      variant: 'danger',
-                      confirmLabel: 'Cancel Booking',
-                      onConfirm: async () => {
-                        await handleUpdateBookingStatus(activeActionsMenu.data.id, 'cancelled');
-                        closeConfirm();
-                      }
-                    });
-                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                  }} 
-                  className="actions-dropdown-item actions-dropdown-item-danger"
-                >
-                  <X size={14} /> Cancel Booking
-                </button>
-              )}
-              <div className="actions-dropdown-divider" />
-              <button 
-                onClick={() => {
-                  handleDeleteBooking(activeActionsMenu.data.id);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item actions-dropdown-item-danger"
-              >
-                <Trash size={14} /> Delete Record
-              </button>
             </>
           )}
 
           {activeActionsMenu.type === 'billing' && (
             <>
+              {(getActiveRole() === 'admin' || getActiveRole() === 'accountant') && (
+                <button 
+                  onClick={() => {
+                    handleEditInvoice(activeActionsMenu.data);
+                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                  }} 
+                  className="actions-dropdown-item"
+                >
+                  <Edit size={14} /> Edit Invoice
+                </button>
+              )}
+              
               <button 
                 onClick={() => {
-                  handleEditInvoice(activeActionsMenu.data);
+                  setSelectedInvoiceForReceipt(activeActionsMenu.data);
+                  setShowReceiptModal(true);
+                  setLoadingReceipt(true);
+                  BillingService.getInvoice(activeActionsMenu.data.id)
+                    .then(res => setReceiptDetails(res.data))
+                    .catch(() => toast.error("Failed to load receipt details."))
+                    .finally(() => setLoadingReceipt(false));
                   setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
                 }} 
                 className="actions-dropdown-item"
               >
-                <Edit size={14} /> Edit Invoice
+                <FileText size={14} /> View Official Receipt
               </button>
-              {(activeActionsMenu.data.status !== "Paid" && activeActionsMenu.data.status !== "paid") && (
+
+              {(getActiveRole() === 'admin' || getActiveRole() === 'accountant' || getActiveRole() === 'dispatcher') && 
+               (activeActionsMenu.data.status !== "Paid" && activeActionsMenu.data.status !== "paid" && activeActionsMenu.data.status !== "refunded") && (
                 <button 
                   onClick={() => {
                     setPaymentForm({
@@ -1741,18 +2135,469 @@ export default function DashboardPage() {
                   <DollarSign size={14} /> Record Payment
                 </button>
               )}
-              <div className="actions-dropdown-divider" />
-              <button 
-                onClick={() => {
-                  handleVoidInvoice(activeActionsMenu.data.id);
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item actions-dropdown-item-danger"
-              >
-                <Trash size={14} /> Void / Archive
-              </button>
+
+              {(getActiveRole() === 'admin' || getActiveRole() === 'accountant') && 
+               (activeActionsMenu.data.status === "Paid" || activeActionsMenu.data.status === "paid") && (
+                <button 
+                  onClick={() => {
+                    setSelectedInvoiceForRefund(activeActionsMenu.data);
+                    setRefundForm({
+                      refund_amount: activeActionsMenu.data.amount || activeActionsMenu.data.total_amount || "",
+                      refund_method: "GCASH",
+                      notes: "",
+                      reference_code: ""
+                    });
+                    setShowRefundModal(true);
+                    setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                  }} 
+                  className="actions-dropdown-item"
+                >
+                  <DollarSign size={14} /> Process Refund
+                </button>
+              )}
+
+              {(getActiveRole() === 'admin' || getActiveRole() === 'accountant') && (
+                <>
+                  <div className="actions-dropdown-divider" />
+                  <button 
+                    onClick={() => {
+                      handleVoidInvoice(activeActionsMenu.data.id);
+                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
+                    }} 
+                    className="actions-dropdown-item actions-dropdown-item-danger"
+                  >
+                    <Trash size={14} /> Void / Archive
+                  </button>
+                </>
+              )}
             </>
           )}
+        </div>
+      )}
+
+      {/* Vehicle Inspections Log Modal */}
+      {showInspectionsModal && selectedVehicleForInspections && (
+        <div className="modal-overlay" onClick={() => setShowInspectionsModal(false)}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%' }}>
+            <div className="modal-header">
+              <div className="modal-header-icon"><Wrench size={20} /></div>
+              <h2>Inspections Log - {selectedVehicleForInspections.make} {selectedVehicleForInspections.model} ({selectedVehicleForInspections.plate_number})</h2>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>Previous Inspections</h3>
+              {loadingInspections ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}><Loader size={24} /></div>
+              ) : inspectionsList.length === 0 ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  No logged inspections found for this vehicle.
+                </div>
+              ) : (
+                <div className="table-container" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <table className="modern-table">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Odometer</th>
+                        <th>Fuel</th>
+                        <th>Interior</th>
+                        <th>Safety</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inspectionsList.map(ins => (
+                        <tr key={ins.id}>
+                          <td>
+                            <span className={`badge ${ins.inspection_type === 'checkout' ? 'badge-info' : 'badge-success'}`} style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                              {ins.inspection_type}
+                            </span>
+                          </td>
+                          <td>{parseInt(ins.odometer_reading).toLocaleString()} KM</td>
+                          <td>{ins.fuel_level_percent}%</td>
+                          <td>{ins.interior_clean_status}</td>
+                          <td>
+                            <span className={`badge ${ins.safety_check_passed ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.7rem' }}>
+                              {ins.safety_check_passed ? 'PASSED' : 'FAILED'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '0.75rem' }}>{formatManilaDateTime(ins.created_at || ins.uploaded_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher' || getActiveRole() === 'mechanic') && (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await FleetService.createInspection(selectedVehicleForInspections.id, inspectionForm);
+                  toast.success("Inspection logged successfully.");
+                  setLoadingInspections(true);
+                  const res = await FleetService.listInspections(selectedVehicleForInspections.id);
+                  setInspectionsList(res.data?.data || []);
+                  setInspectionForm({
+                    booking_id: "",
+                    inspection_type: "checkout",
+                    odometer_reading: "",
+                    fuel_level_percent: "100",
+                    body_damage_notes: "",
+                    interior_clean_status: "EXCELLENT",
+                    safety_check_passed: true
+                  });
+                  fetchData();
+                } catch (err) {
+                  toast.error(err.response?.data?.message || "Failed to log inspection.");
+                } finally {
+                  setLoadingInspections(false);
+                }
+              }} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>Log New Inspection</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Inspection Event Type</label>
+                    <select className="input-control" value={inspectionForm.inspection_type} onChange={e => setInspectionForm({...inspectionForm, inspection_type: e.target.value})}>
+                      <option value="checkout">Check-out (Release)</option>
+                      <option value="checkin">Check-in (Return)</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Odometer Reading (KM)</label>
+                    <input required type="number" className="input-control" value={inspectionForm.odometer_reading} onChange={e => setInspectionForm({...inspectionForm, odometer_reading: e.target.value})} placeholder="e.g. 12500" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Fuel Level (%)</label>
+                    <input required type="number" min="0" max="100" className="input-control" value={inspectionForm.fuel_level_percent} onChange={e => setInspectionForm({...inspectionForm, fuel_level_percent: e.target.value})} placeholder="100" />
+                  </div>
+                  <div className="form-group">
+                    <label>Interior Clean Status</label>
+                    <select className="input-control" value={inspectionForm.interior_clean_status} onChange={e => setInspectionForm({...inspectionForm, interior_clean_status: e.target.value})}>
+                      <option value="EXCELLENT">Excellent</option>
+                      <option value="GOOD">Good</option>
+                      <option value="FAIR">Fair</option>
+                      <option value="DIRTY">Dirty</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Booking Reference (Optional)</label>
+                    <select className="input-control" value={inspectionForm.booking_id} onChange={e => setInspectionForm({...inspectionForm, booking_id: e.target.value})}>
+                      <option value="">None / Walk-in / Maintenance</option>
+                      {bookings.filter(b => b.vehicle_id === selectedVehicleForInspections.id).map(b => (
+                        <option key={b.id} value={b.id}>Booking #{b.id} ({getCustomerName(b.customer_id)})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ display: 'flex', alignItems: 'center', height: '100%', marginTop: '1.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={inspectionForm.safety_check_passed} onChange={e => setInspectionForm({...inspectionForm, safety_check_passed: e.target.checked})} />
+                      Safety Check Passed (Eligible to Rent)
+                    </label>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Body Damage & Notes</label>
+                  <input className="input-control" value={inspectionForm.body_damage_notes} onChange={e => setInspectionForm({...inspectionForm, body_damage_notes: e.target.value.toUpperCase()})} placeholder="NO DENTS, MINOR SCRATCH ON FRONT BUMPER..." style={{ textTransform: 'uppercase' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button type="submit" className="btn-primary"><Check size={16} /> Submit Inspection Report</button>
+                </div>
+              </form>
+            )}
+
+            <div className="modal-footer" style={{ borderTop: 'none', padding: 0, marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setShowInspectionsModal(false)} className="btn-secondary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Document Vault Modal */}
+      {showDocumentsModal && selectedCustomerForDocs && (
+        <div className="modal-overlay" onClick={() => setShowDocumentsModal(false)}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
+            <div className="modal-header">
+              <div className="modal-header-icon"><Shield size={20} /></div>
+              <h2>Document Vault - {selectedCustomerForDocs.first_name} {selectedCustomerForDocs.last_name}</h2>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>Secure Document Vault</h3>
+              {loadingDocs ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}><Loader size={24} /></div>
+              ) : documentsList.length === 0 ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  No uploaded government KYC documents found.
+                </div>
+              ) : (
+                <div className="table-container" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <table className="modern-table">
+                    <thead>
+                      <tr>
+                        <th>Document Type</th>
+                        <th>File Location</th>
+                        <th>Uploaded Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documentsList.map(doc => (
+                        <tr key={doc.id}>
+                          <td>
+                            <span className="badge badge-info" style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                              {String(doc.document_type).replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td><code>{doc.s3_file_path}</code></td>
+                          <td style={{ fontSize: '0.75rem' }}>{formatManilaDateTime(doc.created_at || doc.uploaded_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher') && (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await CrmService.uploadDocument(selectedCustomerForDocs.id, documentForm);
+                  toast.success("Document uploaded successfully.");
+                  setLoadingDocs(true);
+                  const res = await CrmService.listDocuments(selectedCustomerForDocs.id);
+                  setDocumentsList(res.data?.data || []);
+                  setDocumentForm({
+                    document_type: "LICENSE_PHOTO",
+                    s3_file_path: ""
+                  });
+                  fetchData();
+                } catch (err) {
+                  toast.error(err.response?.data?.message || "Failed to upload document.");
+                } finally {
+                  setLoadingDocs(false);
+                }
+              }} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>Secure Document Uploader</h3>
+                <div className="form-group">
+                  <label>Government ID Document Type</label>
+                  <select className="input-control" value={documentForm.document_type} onChange={e => setDocumentForm({...documentForm, document_type: e.target.value})}>
+                    <option value="LICENSE_PHOTO">Driver's License Photo</option>
+                    <option value="PASSPORT_SCAN">Passport Scan</option>
+                    <option value="UTILITY_BILL">Utility Billing (Address Proof)</option>
+                    <option value="NATIONAL_ID">National ID Card Scan</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Simulated Secure Cloud Storage Path (S3 / Disk)</label>
+                  <input required className="input-control" value={documentForm.s3_file_path} onChange={e => setDocumentForm({...documentForm, s3_file_path: e.target.value})} placeholder="e.g. secure-vault/kyc/customer_4_license.jpg" />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                  <button type="submit" className="btn-primary"><Plus size={16} /> Upload Secure File</button>
+                </div>
+              </form>
+            )}
+
+            <div className="modal-footer" style={{ borderTop: 'none', padding: 0, marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setShowDocumentsModal(false)} className="btn-secondary">Close Vault</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Receipt & Invoice Breakdown Modal */}
+      {showReceiptModal && selectedInvoiceForReceipt && (
+        <div className="modal-overlay" onClick={() => setShowReceiptModal(false)}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%' }}>
+            <div className="modal-header" style={{ borderBottom: '2px dashed var(--border-color)', paddingBottom: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <img src="/logo.png" alt="SwiftRide" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>SWIFTRIDE RENTALS INC.</span>
+                  </div>
+                  <span className={`badge ${
+                    selectedInvoiceForReceipt.status === 'Paid' || selectedInvoiceForReceipt.status === 'paid' ? 'badge-success' : 
+                    selectedInvoiceForReceipt.status === 'refunded' ? 'badge-warning' : 'badge-danger'
+                  }`} style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                    {selectedInvoiceForReceipt.status}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.25rem' }}>
+                  123 RIZAL AVENUE, MAKATI CITY, METRO MANILA, PHILIPPINES<br />
+                  TIN: 009-123-456-0000 | VAT REGISTERED BUSINESS
+                </div>
+              </div>
+            </div>
+
+            {loadingReceipt ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader size={32} /></div>
+            ) : receiptDetails ? (
+              <div style={{ padding: '1rem 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.85rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)' }}>OFFICIAL RECEIPT NO.</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{formatInvoiceId(receiptDetails.id)}</div>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '0.4rem' }}>DATE COMPLETED</div>
+                    <div>{formatManilaDateTime(receiptDetails.updated_at || receiptDetails.created_at)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)' }}>BILLED TO CUSTOMER</div>
+                    <div style={{ fontWeight: 'bold' }}>{getCustomerName(receiptDetails.customer_id)}</div>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '0.4rem' }}>BOOKING ID REFERENCE</div>
+                    <div>Booking #{receiptDetails.booking_id}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.5rem', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Particulars & Line Items</h4>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                        <th style={{ padding: '0.4rem 0' }}>Description</th>
+                        <th style={{ padding: '0.4rem 0', textAlign: 'center' }}>Qty</th>
+                        <th style={{ padding: '0.4rem 0', textAlign: 'right' }}>Price</th>
+                        <th style={{ padding: '0.4rem 0', textAlign: 'right' }}>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {receiptDetails.invoice_line_items && receiptDetails.invoice_line_items.length > 0 ? (
+                        receiptDetails.invoice_line_items.map(item => (
+                          <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                            <td style={{ padding: '0.5rem 0', color: 'var(--text-primary)', fontWeight: '500' }}>{item.item_description}</td>
+                            <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{item.quantity || 1}</td>
+                            <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>₱{parseFloat(item.unit_price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: '600' }}>₱{parseFloat(item.subtotal || item.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td style={{ padding: '0.5rem 0', color: 'var(--text-primary)', fontWeight: '500' }}>Car Rental Base Flat Rate Fee</td>
+                          <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>1</td>
+                          <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>₱{(parseFloat(receiptDetails.amount || receiptDetails.total_amount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                          <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: '600' }}>₱{(parseFloat(receiptDetails.amount || receiptDetails.total_amount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {(() => {
+                  const total = parseFloat(receiptDetails.amount || receiptDetails.total_amount || 0);
+                  const vatExclusive = total / 1.12;
+                  const vatAmount = total - vatExclusive;
+                  return (
+                    <div style={{ background: theme === 'light' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Vat-Exclusive Net Sales:</span>
+                        <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>₱{vatExclusive.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', borderBottom: '1px dashed var(--border-color)', paddingBottom: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Value Added Tax (12% VAT):</span>
+                        <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>₱{vatAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.05rem', marginTop: '0.4rem', color: 'var(--primary)' }}>
+                        <span>TOTAL PAID TRANSACTION:</span>
+                        <span>₱{total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {receiptDetails.refunds && receiptDetails.refunds.length > 0 && (
+                  <div style={{ marginTop: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                      <AlertTriangle size={14} /> REFUND PROCESSED
+                    </div>
+                    {receiptDetails.refunds.map(ref => (
+                      <div key={ref.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                        <div>Refund Amount: <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>₱{parseFloat(ref.refund_amount).toLocaleString()}</span> via <span style={{ textTransform: 'uppercase' }}>{ref.refund_method}</span></div>
+                        <div>Reference ID: <code>{ref.reference_code || 'REF-N/A'}</code></div>
+                        <div>Processed Date: {formatManilaDateTime(ref.processed_at || ref.created_at)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Could not load receipt details.</div>
+            )}
+
+            <div className="modal-footer" style={{ borderTop: '2px dashed var(--border-color)', paddingTop: '1rem', paddingBottom: 0 }}>
+              <button type="button" onClick={() => setShowReceiptModal(false)} className="btn-secondary">Close Receipt</button>
+              <button type="button" onClick={() => window.print()} className="btn-primary"><FileText size={16} /> Print Receipt</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Process Refund Modal */}
+      {showRefundModal && selectedInvoiceForRefund && (
+        <div className="modal-overlay" onClick={() => setShowRefundModal(false)}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
+            <div className="modal-header">
+              <div className="modal-header-icon"><DollarSign size={20} /></div>
+              <h2>Process Invoice Refund</h2>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await BillingService.createRefund({
+                  invoice_id: selectedInvoiceForRefund.id,
+                  refund_amount: refundForm.refund_amount,
+                  refund_method: refundForm.refund_method,
+                  notes: refundForm.notes,
+                  reference_code: refundForm.reference_code
+                });
+                toast.success("Refund processed successfully!");
+                setShowRefundModal(false);
+                setRefundForm({
+                  refund_amount: "",
+                  refund_method: "GCASH",
+                  notes: "",
+                  reference_code: ""
+                });
+                fetchData();
+              } catch (err) {
+                toast.error(err.response?.data?.message || "Failed to process refund.");
+              }
+            }}>
+              <div className="form-group">
+                <label>Invoice Reference</label>
+                <input readOnly disabled className="input-control" value={`${formatInvoiceId(selectedInvoiceForRefund.id)} - ₱${parseFloat(selectedInvoiceForRefund.amount || selectedInvoiceForRefund.total_amount || 0).toLocaleString()} (${selectedInvoiceForRefund.status})`} />
+              </div>
+              <div className="form-group">
+                <label>Refund Amount (PHP)</label>
+                <input required type="number" step="0.01" className="input-control" value={refundForm.refund_amount} onChange={e => setRefundForm({...refundForm, refund_amount: e.target.value})} placeholder="3000" />
+              </div>
+              <div className="form-group">
+                <label>Refund Payment Channel</label>
+                <select className="input-control" value={refundForm.refund_method} onChange={e => setRefundForm({...refundForm, refund_method: e.target.value})}>
+                  <option value="GCASH">GCash E-Wallet</option>
+                  <option value="MAYA">Maya Pay E-Wallet</option>
+                  <option value="CASH">Cash Refund</option>
+                  <option value="BANK_TRANSFER">Bank Direct Credit</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Transaction / Reference Authorization Code</label>
+                <input required className="input-control" value={refundForm.reference_code} onChange={e => setRefundForm({...refundForm, reference_code: e.target.value.toUpperCase()})} placeholder="REF-GCASH-12345" style={{ textTransform: 'uppercase' }} />
+              </div>
+              <div className="form-group">
+                <label>Refund Reason & Audit Notes</label>
+                <textarea className="input-control" value={refundForm.notes} onChange={e => setRefundForm({...refundForm, notes: e.target.value.toUpperCase()})} placeholder="CUSTOMER TRIP CANCELLED, REFUND APPROVED BY FINANCE MANAGER..." style={{ height: "80px", resize: "none", textTransform: 'uppercase' }} />
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={() => setShowRefundModal(false)} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary" style={{ background: 'var(--danger)', borderColor: 'var(--danger)' }}><DollarSign size={16} /> Authorize Refund</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

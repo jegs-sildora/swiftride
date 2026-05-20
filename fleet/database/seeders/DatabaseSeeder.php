@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'available',
                 'daily_rate' => 1500.00,
                 'description' => 'Fuel-efficient subcompact sedan, perfect for city driving.',
+                'current_odometer' => 12500,
+                'fuel_tank_capacity_liters' => 42.00,
+                'insurance_policy_number' => 'INS-VIOS-9821',
+                'insurance_expiry_date' => '2027-05-01',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -38,6 +42,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'available',
                 'daily_rate' => 2500.00,
                 'description' => 'Spacious and comfortable 7-seater MPV, great for family trips.',
+                'current_odometer' => 32400,
+                'fuel_tank_capacity_liters' => 55.00,
+                'insurance_policy_number' => 'INS-INNO-8472',
+                'insurance_expiry_date' => '2027-02-15',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -52,6 +60,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'rented',
                 'daily_rate' => 3500.00,
                 'description' => 'Premium mid-size SUV, robust performance and elegant ride.',
+                'current_odometer' => 45200,
+                'fuel_tank_capacity_liters' => 80.00,
+                'insurance_policy_number' => 'INS-FORT-3910',
+                'insurance_expiry_date' => '2027-08-30',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -66,6 +78,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'available',
                 'daily_rate' => 3000.00,
                 'description' => '15-seater utility passenger van, ideal for large group outings.',
+                'current_odometer' => 68100,
+                'fuel_tank_capacity_liters' => 65.00,
+                'insurance_policy_number' => 'INS-NV35-9218',
+                'insurance_expiry_date' => '2026-12-10',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -80,6 +96,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'maintenance',
                 'daily_rate' => 4000.00,
                 'description' => 'Light-duty commercial truck, excellent cargo capacity.',
+                'current_odometer' => 112000,
+                'fuel_tank_capacity_liters' => 100.00,
+                'insurance_policy_number' => 'INS-ISUZ-4819',
+                'insurance_expiry_date' => '2026-10-25',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -87,6 +107,42 @@ class DatabaseSeeder extends Seeder
 
         foreach ($vehicles as $v) {
             DB::table('vehicles')->updateOrInsert(['id' => $v['id']], $v);
+        }
+
+        // Seeding Inspections
+        $inspections = [
+            [
+                'id' => 1,
+                'vehicle_id' => 1,
+                'booking_id' => 1,
+                'inspection_type' => 'checkout',
+                'odometer_reading' => 12000,
+                'fuel_level_percent' => 100.00,
+                'body_damage_notes' => 'Minor scratch on rear bumper.',
+                'interior_clean_status' => 'CLEAN',
+                'safety_check_passed' => true,
+                'inspector_id' => 2,
+                'created_at' => now()->subDays(5),
+                'updated_at' => now()->subDays(5),
+            ],
+            [
+                'id' => 2,
+                'vehicle_id' => 1,
+                'booking_id' => 1,
+                'inspection_type' => 'checkin',
+                'odometer_reading' => 12500,
+                'fuel_level_percent' => 90.00,
+                'body_damage_notes' => 'Rear bumper scratch remains same.',
+                'interior_clean_status' => 'CLEAN',
+                'safety_check_passed' => true,
+                'inspector_id' => 2,
+                'created_at' => now()->subDays(2),
+                'updated_at' => now()->subDays(2),
+            ],
+        ];
+
+        foreach ($inspections as $ins) {
+            DB::table('vehicle_inspections')->updateOrInsert(['id' => $ins['id']], $ins);
         }
 
         // Maintenance log for Isuzu Elf (status: maintenance)

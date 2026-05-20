@@ -39,15 +39,18 @@ class CustomerController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'first_name'      => 'required|string|max:100',
-            'last_name'       => 'required|string|max:100',
-            'email'           => 'required|email|unique:customers,email',
-            'phone'           => 'sometimes|string|max:30',
-            'billing_address' => 'sometimes|string|max:500',
-            'city'            => 'sometimes|string|max:100',
-            'state'           => 'sometimes|string|max:100',
-            'postal_code'     => 'sometimes|string|max:20',
-            'country'         => 'sometimes|string|max:100',
+            'first_name'             => 'required|string|max:100',
+            'last_name'              => 'required|string|max:100',
+            'email'                  => 'required|email|unique:customers,email',
+            'phone'                  => 'sometimes|string|max:30',
+            'billing_address'        => 'sometimes|string|max:500',
+            'city'                   => 'sometimes|string|max:100',
+            'state'                  => 'sometimes|string|max:100',
+            'postal_code'            => 'sometimes|string|max:20',
+            'country'                => 'sometimes|string|max:100',
+            'loyalty_tier'           => 'sometimes|string|in:BRONZE,SILVER,GOLD',
+            'loyalty_points'         => 'sometimes|integer|min:0',
+            'government_id_verified' => 'sometimes|boolean',
         ]);
 
         return response()->json(Customer::create($validated), 201);
@@ -60,7 +63,7 @@ class CustomerController extends Controller
     public function show(int $id): JsonResponse
     {
         return response()->json(
-            Customer::with('driverLicenses')->findOrFail($id)
+            Customer::with(['driverLicenses', 'customerDocuments'])->findOrFail($id)
         );
     }
 
@@ -73,16 +76,19 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($id);
 
         $validated = $request->validate([
-            'first_name'      => 'sometimes|string|max:100',
-            'last_name'       => 'sometimes|string|max:100',
-            'email'           => 'sometimes|email|unique:customers,email,' . $id,
-            'phone'           => 'sometimes|string|max:30',
-            'billing_address' => 'sometimes|string|max:500',
-            'city'            => 'sometimes|string|max:100',
-            'state'           => 'sometimes|string|max:100',
-            'postal_code'     => 'sometimes|string|max:20',
-            'country'         => 'sometimes|string|max:100',
-            'status'          => 'sometimes|in:active,suspended,blacklisted',
+            'first_name'             => 'sometimes|string|max:100',
+            'last_name'              => 'sometimes|string|max:100',
+            'email'                  => 'sometimes|email|unique:customers,email,' . $id,
+            'phone'                  => 'sometimes|string|max:30',
+            'billing_address'        => 'sometimes|string|max:500',
+            'city'                   => 'sometimes|string|max:100',
+            'state'                  => 'sometimes|string|max:100',
+            'postal_code'            => 'sometimes|string|max:20',
+            'country'                => 'sometimes|string|max:100',
+            'status'                 => 'sometimes|in:active,suspended,blacklisted',
+            'loyalty_tier'           => 'sometimes|string|in:BRONZE,SILVER,GOLD',
+            'loyalty_points'         => 'sometimes|integer|min:0',
+            'government_id_verified' => 'sometimes|boolean',
         ]);
 
         $customer->update($validated);
@@ -131,6 +137,20 @@ class CustomerController extends Controller
             'eligible'   => true,
             'reason'     => null,
             'license_id' => $validLicense->getKey(),
+        ]);
+    }
+
+    /**
+     * Get the discount rate for a customer based on loyalty tier.
+     * GET /api/customers/{id}/discount
+     */
+    public function getDiscount(int $id): JsonResponse
+    {
+        $customer = Customer::findOrFail($id);
+        return response()->json([
+            'customer_id'         => $customer->id,
+            'loyalty_tier'        => $customer->loyalty_tier,
+            'discount_percentage' => $customer->getDiscountPercentage(),
         ]);
     }
 }

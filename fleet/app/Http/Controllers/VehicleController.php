@@ -34,15 +34,19 @@ class VehicleController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'make'         => 'required|string|max:100',
-            'model'        => 'required|string|max:100',
-            'year'         => 'required|integer|min:1900|max:2100',
-            'plate_number' => 'required|string|max:20|unique:vehicles,plate_number',
-            'color'        => 'sometimes|string|max:50',
-            'type'         => 'sometimes|string|in:car,van,truck,bus,motorcycle',
-            'status'       => 'sometimes|in:available,rented,maintenance',
-            'daily_rate'   => 'required|numeric|min:0',
-            'description'  => 'sometimes|string|max:1000',
+            'make'                      => 'required|string|max:100',
+            'model'                     => 'required|string|max:100',
+            'year'                      => 'required|integer|min:1900|max:2100',
+            'plate_number'              => 'required|string|max:20|unique:vehicles,plate_number',
+            'color'                     => 'sometimes|string|max:50',
+            'type'                      => 'sometimes|string|in:car,van,truck,bus,motorcycle',
+            'status'                    => 'sometimes|in:available,rented,maintenance',
+            'daily_rate'                => 'required|numeric|min:0',
+            'description'               => 'sometimes|string|max:1000',
+            'current_odometer'          => 'sometimes|integer|min:0',
+            'fuel_tank_capacity_liters' => 'sometimes|numeric|min:0',
+            'insurance_policy_number'   => 'sometimes|nullable|string|max:100',
+            'insurance_expiry_date'     => 'sometimes|nullable|date',
         ]);
 
         $vehicle = Vehicle::create($validated);
@@ -56,7 +60,7 @@ class VehicleController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $vehicle = Vehicle::with('maintenanceLogs')->findOrFail($id);
+        $vehicle = Vehicle::with(['maintenanceLogs', 'vehicleInspections'])->findOrFail($id);
         return response()->json($vehicle);
     }
 
@@ -69,15 +73,19 @@ class VehicleController extends Controller
         $vehicle = Vehicle::findOrFail($id);
 
         $validated = $request->validate([
-            'make'         => 'sometimes|string|max:100',
-            'model'        => 'sometimes|string|max:100',
-            'year'         => 'sometimes|integer|min:1900|max:2100',
-            'plate_number' => 'sometimes|string|max:20|unique:vehicles,plate_number,' . $id,
-            'color'        => 'sometimes|string|max:50',
-            'type'         => 'sometimes|string|in:car,van,truck,bus,motorcycle',
-            'status'       => 'sometimes|in:available,rented,maintenance',
-            'daily_rate'   => 'sometimes|numeric|min:0',
-            'description'  => 'sometimes|string|max:1000',
+            'make'                      => 'sometimes|string|max:100',
+            'model'                     => 'sometimes|string|max:100',
+            'year'                      => 'sometimes|integer|min:1900|max:2100',
+            'plate_number'              => 'sometimes|string|max:20|unique:vehicles,plate_number,' . $id,
+            'color'                     => 'sometimes|string|max:50',
+            'type'                      => 'sometimes|string|in:car,van,truck,bus,motorcycle',
+            'status'                    => 'sometimes|in:available,rented,maintenance',
+            'daily_rate'                => 'sometimes|numeric|min:0',
+            'description'               => 'sometimes|string|max:1000',
+            'current_odometer'          => 'sometimes|integer|min:0',
+            'fuel_tank_capacity_liters' => 'sometimes|numeric|min:0',
+            'insurance_policy_number'   => 'sometimes|nullable|string|max:100',
+            'insurance_expiry_date'     => 'sometimes|nullable|date',
         ]);
 
         $vehicle->update($validated);

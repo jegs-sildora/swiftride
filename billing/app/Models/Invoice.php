@@ -33,6 +33,16 @@ class Invoice extends Model
         return $this->hasMany(Payment::class)->orderBy('paid_at');
     }
 
+    public function invoiceLineItems(): HasMany
+    {
+        return $this->hasMany(InvoiceLineItem::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     /**
      * Recompute status based on payments received.
      */

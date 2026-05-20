@@ -10,6 +10,8 @@ const FleetService = {
   updateStatus: (id, status) =>
     api.patch(`/fleet/vehicles/${id}/status`, { status }),
   checkAvailability: (id) => api.get(`/fleet/vehicles/${id}/availability`),
+  listInspections: (vehicleId) => api.get(`/fleet/vehicles/${vehicleId}/inspections`),
+  createInspection: (vehicleId, data) => api.post(`/fleet/vehicles/${vehicleId}/inspections`, data),
 
   // Maintenance
   listLogs: (params = {}) => api.get("/fleet/maintenance-logs", { params }),

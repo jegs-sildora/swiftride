@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RefundController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,3 +21,6 @@ Route::get('payments',         [PaymentController::class, 'index']);
 Route::post('payments',        [PaymentController::class, 'store']);
 Route::get('payments/{id}',    [PaymentController::class, 'show']);
 Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
+
+// Refunds
+Route::apiResource('refunds', RefundController::class)->only(['index', 'store']);

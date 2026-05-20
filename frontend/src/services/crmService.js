@@ -8,6 +8,8 @@ const CrmService = {
   updateCustomer: (id, data) => api.put(`/crm/customers/${id}`, data),
   deleteCustomer: (id) => api.delete(`/crm/customers/${id}`),
   verifyCustomer: (id) => api.get(`/crm/customers/${id}/verify`),
+  listDocuments: (customerId) => api.get(`/crm/customers/${customerId}/documents`),
+  uploadDocument: (customerId, data) => api.post(`/crm/customers/${customerId}/documents`, data),
 
   // Driver Licenses
   listLicenses: (params = {}) => api.get("/crm/driver-licenses", { params }),

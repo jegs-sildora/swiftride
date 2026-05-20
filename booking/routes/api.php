@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 // Bookings CRUD
 Route::apiResource('bookings', BookingController::class);
+Route::get('bookings/{id}/addons', [BookingController::class, 'getAddons']);
 
 // Booking schedule events
 Route::apiResource('schedules', ScheduleController::class)->except(['update']);

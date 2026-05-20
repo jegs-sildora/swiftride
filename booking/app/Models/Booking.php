@@ -21,19 +21,29 @@ class Booking extends Model
         'notes',
         'confirmed_by',
         'confirmed_at',
+        'pickup_location',
+        'return_location',
+        'security_deposit_amount',
+        'security_deposit_status',
     ];
 
     protected $casts = [
-        'start_date'   => 'date',
-        'end_date'     => 'date',
-        'daily_rate'   => 'decimal:2',
-        'total_cost'   => 'decimal:2',
-        'confirmed_at' => 'datetime',
+        'start_date'              => 'date',
+        'end_date'                => 'date',
+        'daily_rate'              => 'decimal:2',
+        'total_cost'              => 'decimal:2',
+        'confirmed_at'            => 'datetime',
+        'security_deposit_amount' => 'decimal:2',
     ];
 
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class)->orderBy('event_time');
+    }
+
+    public function bookingAddons(): HasMany
+    {
+        return $this->hasMany(BookingAddon::class);
     }
 
     /**

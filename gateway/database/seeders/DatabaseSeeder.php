@@ -15,31 +15,78 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure roles exist (migration seeds them, but guard against re-runs)
-        $adminRoleId = \DB::table('roles')->where('name', 'admin')->value('id');
+        $roles = [
+            'admin' => 'Full system access',
+            'dispatcher' => 'Manages booking schedules, customers, and dispatches',
+            'mechanic' => 'Performs vehicle inspections and logs maintenance',
+            'accountant' => 'Audits invoices, records payments, and issues VAT refunds',
+        ];
 
-        if (!$adminRoleId) {
-            $adminRoleId = \DB::table('roles')->insertGetId([
-                'name'        => 'admin',
-                'description' => 'Full system access',
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
+        $roleIds = [];
+
+        foreach ($roles as $name => $desc) {
+            $id = \DB::table('roles')->where('name', $name)->value('id');
+            if (!$id) {
+                $id = \DB::table('roles')->insertGetId([
+                    'name'        => $name,
+                    'description' => $desc,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            } else {
+                \DB::table('roles')->where('id', $id)->update([
+                    'description' => $desc,
+                    'updated_at'  => now(),
+                ]);
+            }
+            $roleIds[$name] = $id;
         }
 
-        // Create the default admin user (idempotent)
-        \DB::table('users')->upsert(
+        $users = [
             [
                 'name'              => 'John Doe',
                 'email'             => 'john.doe@swiftride.com',
                 'password'          => Hash::make('Admin2026!'),
-                'role_id'           => $adminRoleId,
+                'role_id'           => $roleIds['admin'],
                 'email_verified_at' => now(),
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ],
-            ['email'],                               // conflict key
-            ['name', 'password', 'role_id', 'updated_at'] // columns to update on conflict
-        );
+            [
+                'name'              => 'Alice Dispatcher',
+                'email'             => 'alice.dispatcher@swiftride.com',
+                'password'          => Hash::make('Dispatcher2026!'),
+                'role_id'           => $roleIds['dispatcher'],
+                'email_verified_at' => now(),
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+            [
+                'name'              => 'Bob Mechanic',
+                'email'             => 'bob.mechanic@swiftride.com',
+                'password'          => Hash::make('Mechanic2026!'),
+                'role_id'           => $roleIds['mechanic'],
+                'email_verified_at' => now(),
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+            [
+                'name'              => 'Charlie Accountant',
+                'email'             => 'charlie.accountant@swiftride.com',
+                'password'          => Hash::make('Accountant2026!'),
+                'role_id'           => $roleIds['accountant'],
+                'email_verified_at' => now(),
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+        ];
+
+        foreach ($users as $user) {
+            \DB::table('users')->upsert(
+                $user,
+                ['email'],
+                ['name', 'password', 'role_id', 'updated_at']
+            );
+        }
     }
 }

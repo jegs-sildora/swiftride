@@ -18,6 +18,10 @@ const BillingService = {
   getPayment: (id) => api.get(`/billing/payments/${id}`),
   recordPayment: (data) => api.post("/billing/payments", data),
   reversePayment: (id) => api.delete(`/billing/payments/${id}`),
+
+  // Refunds
+  listRefunds: () => api.get("/billing/refunds"),
+  createRefund: (data) => api.post("/billing/refunds", data),
 };
 
 export default BillingService;

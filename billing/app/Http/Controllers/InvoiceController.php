@@ -15,7 +15,7 @@ class InvoiceController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Invoice::with('payments');
+        $query = Invoice::with(['payments', 'invoiceLineItems', 'refunds']);
 
         if ($request->filled('customer_id')) {
             $query->where('customer_id', $request->integer('customer_id'));
@@ -37,15 +37,57 @@ class InvoiceController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'booking_id'  => 'required|integer',
-            'customer_id' => 'required|integer',
-            'amount'      => 'required|numeric|min:0.01',
-            'due_date'    => 'required|date',
-            'notes'       => 'sometimes|string|max:1000',
+            'booking_id'              => 'required|integer',
+            'customer_id'             => 'required|integer',
+            'amount'                  => 'required|numeric|min:0.01',
+            'due_date'                => 'required|date',
+            'notes'                   => 'sometimes|string|max:1000',
+            'line_items'              => 'sometimes|array',
+            'line_items.*.description'=> 'required|string|max:255',
+            'line_items.*.unit_price' => 'required|numeric|min:0',
+            'line_items.*.quantity'   => 'required|integer|min:1',
+            'line_items.*.subtotal'   => 'required|numeric|min:0',
         ]);
 
-        $invoice = Invoice::create($validated);
-        return response()->json($invoice, 201);
+        $invoice = Invoice::create([
+            'booking_id'  => $validated['booking_id'],
+            'customer_id' => $validated['customer_id'],
+            'amount'      => $validated['amount'],
+            'due_date'    => $validated['due_date'],
+            'notes'       => $validated['notes'] ?? null,
+        ]);
+
+        if (!empty($validated['line_items'])) {
+            foreach ($validated['line_items'] as $item) {
+                // Calculate VAT inclusive extraction (12% standard PH VAT)
+                $subtotal = (float)$item['subtotal'];
+                $net = $subtotal / 1.12;
+                $vatAmount = round($subtotal - $net, 2);
+
+                $invoice->invoiceLineItems()->create([
+                    'description' => $item['description'],
+                    'unit_price'  => (float)$item['unit_price'],
+                    'quantity'    => (int)$item['quantity'],
+                    'vat_amount'  => $vatAmount,
+                    'subtotal'    => $subtotal,
+                ]);
+            }
+        } else {
+            // Default fallback line item if none is supplied
+            $subtotal = (float)$validated['amount'];
+            $net = $subtotal / 1.12;
+            $vatAmount = round($subtotal - $net, 2);
+
+            $invoice->invoiceLineItems()->create([
+                'description' => $validated['notes'] ?? "Standard Car Rental Fee",
+                'unit_price'  => $validated['amount'],
+                'quantity'    => 1,
+                'vat_amount'  => $vatAmount,
+                'subtotal'    => $subtotal,
+            ]);
+        }
+
+        return response()->json($invoice->load(['invoiceLineItems', 'refunds']), 201);
     }
 
     /**
@@ -54,7 +96,7 @@ class InvoiceController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        return response()->json(Invoice::with('payments')->findOrFail($id));
+        return response()->json(Invoice::with(['payments', 'invoiceLineItems', 'refunds'])->findOrFail($id));
     }
 
     /**
@@ -71,7 +113,7 @@ class InvoiceController extends Controller
         ]);
 
         $invoice->update($validated);
-        return response()->json($invoice);
+        return response()->json($invoice->load(['payments', 'invoiceLineItems', 'refunds']));
     }
 
     /**

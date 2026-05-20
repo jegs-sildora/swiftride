@@ -156,6 +156,46 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', textAlign: 'center' }}>
+            Demo Role Accounts (Click to Populate)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center', borderRadius: '6px' }}
+              onClick={() => setForm({ email: 'john.doe@swiftride.com', password: 'Admin2026!' })}
+            >
+              🔑 Admin
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center', borderRadius: '6px' }}
+              onClick={() => setForm({ email: 'alice.dispatcher@swiftride.com', password: 'Dispatcher2026!' })}
+            >
+              📋 Dispatcher
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center', borderRadius: '6px' }}
+              onClick={() => setForm({ email: 'bob.mechanic@swiftride.com', password: 'Mechanic2026!' })}
+            >
+              🔧 Mechanic
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center', borderRadius: '6px' }}
+              onClick={() => setForm({ email: 'charlie.accountant@swiftride.com', password: 'Accountant2026!' })}
+            >
+              💵 Accountant
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

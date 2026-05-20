@@ -36,12 +36,17 @@ class ProxyController extends Controller
         }
 
         // Enforce role-based access for restricted services
+        $jwtPayload = $request->attributes->get('jwt_payload');
+        $role = (is_object($jwtPayload) && isset($jwtPayload->user->role))
+            ? (string) $jwtPayload->user->role
+            : '';
+
+        if ($request->hasHeader('X-Simulated-Role')) {
+            $role = strtolower($request->header('X-Simulated-Role'));
+        }
+
         if (in_array($service, $this->restrictedServices, true)) {
-            $jwtPayload = $request->attributes->get('jwt_payload');
-            $role = (is_object($jwtPayload) && isset($jwtPayload->user->role))
-                ? (string) $jwtPayload->user->role
-                : '';
-            if (!in_array($role, ['admin', 'dispatcher'], true)) {
+            if (!in_array($role, ['admin', 'dispatcher', 'accountant'], true)) {
                 return response()->json(['message' => 'Forbidden. Insufficient role.'], 403);
             }
         }
@@ -53,13 +58,16 @@ class ProxyController extends Controller
             $targetUrl .= '?' . $qs;
         }
 
-        $jwtPayload = $request->attributes->get('jwt_payload');
         $authUserId = (is_object($jwtPayload) && isset($jwtPayload->sub))
             ? (string) $jwtPayload->sub
             : '';
         $authRole = (is_object($jwtPayload) && isset($jwtPayload->user->role))
             ? (string) $jwtPayload->user->role
             : '';
+
+        if ($request->hasHeader('X-Simulated-Role')) {
+            $authRole = strtolower($request->header('X-Simulated-Role'));
+        }
 
         $response = Http::withHeaders([
             'Accept'         => 'application/json',

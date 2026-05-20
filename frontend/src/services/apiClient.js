@@ -5,10 +5,14 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach JWT from localStorage on every request
+// Attach JWT and simulated role from localStorage on every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("swiftride_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const simulatedRole = localStorage.getItem("swiftride_simulated_role");
+  if (simulatedRole) config.headers["X-Simulated-Role"] = simulatedRole;
+
   return config;
 });
 

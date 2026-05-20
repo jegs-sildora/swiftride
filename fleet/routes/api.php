@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MaintenanceLogController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\VehicleInspectionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,3 +25,7 @@ Route::get('vehicles/{id}/availability', [VehicleController::class, 'checkAvaila
 
 // Maintenance logs
 Route::apiResource('maintenance-logs', MaintenanceLogController::class);
+
+// Vehicle Inspections
+Route::get('vehicles/{vehicle}/inspections', [VehicleInspectionController::class, 'index']);
+Route::post('vehicles/{vehicle}/inspections', [VehicleInspectionController::class, 'store']);
