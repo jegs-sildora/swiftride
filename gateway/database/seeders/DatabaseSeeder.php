@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +15,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Ensure roles exist (migration seeds them, but guard against re-runs)
+        $adminRoleId = \DB::table('roles')->where('name', 'admin')->value('id');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (!$adminRoleId) {
+            $adminRoleId = \DB::table('roles')->insertGetId([
+                'name'        => 'admin',
+                'description' => 'Full system access',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+        }
+
+        // Create the default admin user (idempotent)
+        \DB::table('users')->upsert(
+            [
+                'name'              => 'John Doe',
+                'email'             => 'john.doe@swiftride.com',
+                'password'          => Hash::make('Admin2026!'),
+                'role_id'           => $adminRoleId,
+                'email_verified_at' => now(),
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+            ['email'],                               // conflict key
+            ['name', 'password', 'role_id', 'updated_at'] // columns to update on conflict
+        );
     }
 }

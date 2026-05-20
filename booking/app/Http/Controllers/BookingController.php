@@ -15,11 +15,13 @@ class BookingController extends Controller
      */
     private string $fleetUrl;
     private string $crmUrl;
+    private string $billingUrl;
 
     public function __construct()
     {
         $this->fleetUrl = rtrim(config('services.fleet.url', 'http://fleet:8001'), '/');
         $this->crmUrl   = rtrim(config('services.crm.url',   'http://crm:8002'),   '/');
+        $this->billingUrl = rtrim(config('services.billing.url', 'http://billing:8004'), '/');
     }
 
     /**
@@ -149,11 +151,20 @@ class BookingController extends Controller
             $validated['confirmed_at'] = now();
         }
 
-        // If booking is completed, free the vehicle (best-effort)
+        // If booking is completed, free the vehicle (best-effort) and generate invoice
         if (($validated['status'] ?? null) === 'completed') {
             Http::timeout(5)->patch("{$this->fleetUrl}/api/vehicles/{$booking->vehicle_id}/status", [
                 'status' => 'available',
             ])->onError(fn() => Log::warning("Failed to release vehicle {$booking->vehicle_id} after booking completion."));
+
+            // Call Billing Service to generate invoice automatically
+            Http::timeout(5)->post("{$this->billingUrl}/api/invoices", [
+                'booking_id'  => $booking->id,
+                'customer_id' => $booking->customer_id,
+                'amount'      => $booking->total_cost,
+                'due_date'    => now()->addDays(7)->toDateString(),
+                'notes'       => "Invoice generated automatically for completed booking #{$booking->id}",
+            ])->onError(fn($e) => Log::warning("Failed to generate invoice for booking {$booking->id}: " . $e->getMessage()));
         }
 
         // If booking is cancelled, free the vehicle (best-effort)

@@ -11,7 +11,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Vite reads VITE_* env vars at build time via import.meta.env
-ARG VITE_API_GATEWAY_URL=http://localhost:8000
+ARG VITE_API_GATEWAY_URL=http://localhost:8000/api
 ENV VITE_API_GATEWAY_URL=$VITE_API_GATEWAY_URL
 
 RUN pnpm run build

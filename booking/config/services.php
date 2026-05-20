@@ -49,4 +49,8 @@ return [
         'url' => env('CRM_SERVICE_URL', 'http://crm:8002'),
     ],
 
+    'billing' => [
+        'url' => env('BILLING_SERVICE_URL', 'http://billing:8004'),
+    ],
+
 ];

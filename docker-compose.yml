@@ -207,7 +207,7 @@ services:
     ports:
       - "3000:80"
     environment:
-      VITE_API_GATEWAY_URL: ${VITE_API_GATEWAY_URL:-http://localhost:8000}
+      VITE_API_GATEWAY_URL: ${VITE_API_GATEWAY_URL:-http://localhost:8000/api}
     depends_on:
       - gateway
     networks:

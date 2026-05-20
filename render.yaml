@@ -1,0 +1,149 @@
+services:
+  # ── PostgreSQL Database ───────────────────────────────────────────────────
+  - type: db
+    name: swiftride-db
+    plan: free
+    databaseName: swiftride
+    user: swiftride_user
+
+  # ── API Gateway Service (Public) ──────────────────────────────────────────
+  - type: web
+    name: gateway
+    plan: free
+    env: docker
+    dockercontext: ./gateway
+    dockerfilepath: ./gateway/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: swiftride-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: gateway
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FLEET_SERVICE_URL
+        value: http://fleet:8001
+      - key: CRM_SERVICE_URL
+        value: http://crm:8002
+      - key: BOOKING_SERVICE_URL
+        value: http://booking:8003
+      - key: BILLING_SERVICE_URL
+        value: http://billing:8004
+
+  # ── Fleet Microservice (Private) ─────────────────────────────────────────
+  - type: private
+    name: fleet
+    env: docker
+    dockercontext: ./fleet
+    dockerfilepath: ./fleet/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: swiftride-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: fleet
+
+  # ── CRM Microservice (Private) ───────────────────────────────────────────
+  - type: private
+    name: crm
+    env: docker
+    dockercontext: ./crm
+    dockerfilepath: ./crm/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: swiftride-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: crm
+
+  # ── Booking Microservice (Private) ───────────────────────────────────────
+  - type: private
+    name: booking
+    env: docker
+    dockercontext: ./booking
+    dockerfilepath: ./booking/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: swiftride-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: booking
+      - key: FLEET_SERVICE_URL
+        value: http://fleet:8001
+      - key: CRM_SERVICE_URL
+        value: http://crm:8002
+      - key: BILLING_SERVICE_URL
+        value: http://billing:8004
+
+  # ── Billing Microservice (Private) ───────────────────────────────────────
+  - type: private
+    name: billing
+    env: docker
+    dockercontext: ./billing
+    dockerfilepath: ./billing/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: swiftride-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: billing
+
+  # ── React Frontend Service (Public) ───────────────────────────────────────
+  - type: web
+    name: frontend
+    plan: free
+    env: docker
+    dockercontext: ./frontend
+    dockerfilepath: ./frontend/Dockerfile
+    dockerBuildArgs:
+      VITE_API_GATEWAY_URL: ${gateway.url}
+    envVars:
+      - key: VITE_API_GATEWAY_URL
+        fromService:
+          name: gateway
+          property: url
