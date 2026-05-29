@@ -79,14 +79,6 @@ class ProxyController extends Controller
                 'X-Auth-Role'    => $authRole,
             ])->timeout(30);
 
-            if ($request->has('dump_url')) {
-                return response()->json([
-                    'target_url' => $targetUrl,
-                    'auth_hostport' => env('AUTH_HOSTPORT'),
-                    'crm_hostport' => env('CRM_HOSTPORT'),
-                    'fleet_hostport' => env('FLEET_HOSTPORT'),
-                ]);
-            }
 
             if (in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)) {
                 $response = $pendingRequest->send($request->method(), $targetUrl);
@@ -95,14 +87,6 @@ class ProxyController extends Controller
                 $response = $pendingRequest->$method($targetUrl, $request->all());
             }
 
-            if ($request->has('debug_proxy')) {
-                return response()->json([
-                    'target_url' => $targetUrl,
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                    'headers' => $response->headers(),
-                ]);
-            }
 
             return response()->json($response->json(), $response->status());
         } catch (\Exception $e) {
