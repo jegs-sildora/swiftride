@@ -4,8 +4,8 @@ services:
   - type: pserv
     name: auth
     env: docker
-    dockercontext: ./auth
-    dockerfilepath: ./auth/Dockerfile
+    dockerContext: ./auth
+    dockerfilePath: ./auth/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -25,8 +25,8 @@ services:
     name: gateway
     plan: free
     env: docker
-    dockercontext: ./gateway
-    dockerfilepath: ./gateway/Dockerfile
+    dockerContext: ./gateway
+    dockerfilePath: ./gateway/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -53,8 +53,8 @@ services:
   - type: pserv
     name: fleet
     env: docker
-    dockercontext: ./fleet
-    dockerfilepath: ./fleet/Dockerfile
+    dockerContext: ./fleet
+    dockerfilePath: ./fleet/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -71,8 +71,8 @@ services:
   - type: pserv
     name: crm
     env: docker
-    dockercontext: ./crm
-    dockerfilepath: ./crm/Dockerfile
+    dockerContext: ./crm
+    dockerfilePath: ./crm/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -89,8 +89,8 @@ services:
   - type: pserv
     name: booking
     env: docker
-    dockercontext: ./booking
-    dockerfilepath: ./booking/Dockerfile
+    dockerContext: ./booking
+    dockerfilePath: ./booking/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -113,8 +113,8 @@ services:
   - type: pserv
     name: billing
     env: docker
-    dockercontext: ./billing
-    dockerfilepath: ./billing/Dockerfile
+    dockerContext: ./billing
+    dockerfilePath: ./billing/Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -134,10 +134,9 @@ services:
     name: frontend
     plan: free
     env: docker
-    dockercontext: ./frontend
-    dockerfilepath: ./frontend/Dockerfile
-    dockerBuildArgs:
-      VITE_API_GATEWAY_URL: ${gateway.url}
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+
     envVars:
       - key: VITE_API_GATEWAY_URL
         fromService:
