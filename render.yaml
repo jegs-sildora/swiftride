@@ -19,7 +19,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_auth_db?sslmode=require
 
   # ── API Gateway Service (Public) ──────────────────────────────────────────
   - type: web
@@ -68,7 +68,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_fleet_db?sslmode=require
 
   # ── CRM Microservice (Private) ───────────────────────────────────────────
   - type: web
@@ -87,7 +87,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_crm_db?sslmode=require
 
   # ── Booking Microservice (Private) ───────────────────────────────────────
   - type: web
@@ -106,7 +106,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_booking_db?sslmode=require
       - key: FLEET_SERVICE_URL
         value: http://fleet:8001
       - key: CRM_SERVICE_URL
@@ -131,7 +131,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_billing_db?sslmode=require
       - key: BOOKING_SERVICE_URL
         value: http://booking:8003
 
@@ -144,5 +144,8 @@ services:
     dockerfilePath: ./frontend/Dockerfile
 
     envVars:
-      - key: VITE_API_GATEWAY_URL
-        sync: false
+      - key: GATEWAY_HOST
+        fromService:
+          type: web
+          name: gateway
+          property: host
