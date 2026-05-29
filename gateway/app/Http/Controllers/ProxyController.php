@@ -71,21 +71,20 @@ class ProxyController extends Controller
         }
 
         try {
-            $response = Http::withHeaders([
+            $pendingRequest = Http::withHeaders([
                 'Accept'         => 'application/json',
                 'Content-Type'   => 'application/json',
                 'Authorization'  => $request->header('Authorization', ''),
                 'X-Auth-User-Id' => $authUserId,
                 'X-Auth-Role'    => $authRole,
-            ])
-            ->timeout(30)
-            ->send(
-                $request->method(),
-                $targetUrl,
-                in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)
-                    ? []
-                    : ['json' => $request->all()],
-            );
+            ])->timeout(30);
+
+            if (in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)) {
+                $response = $pendingRequest->send($request->method(), $targetUrl);
+            } else {
+                $method = strtolower($request->method());
+                $response = $pendingRequest->$method($targetUrl, $request->all());
+            }
 
             return response()->json($response->json(), $response->status());
         } catch (\Exception $e) {
