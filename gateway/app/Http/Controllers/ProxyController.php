@@ -52,7 +52,7 @@ class ProxyController extends Controller
             }
         }
 
-        $baseUrl   = (string) config($this->serviceMap[$service], '');
+        $baseUrl   = trim((string) config($this->serviceMap[$service], ''));
         $targetUrl = rtrim($baseUrl, '/') . '/api/' . ltrim($path, '/');
 
         if ($qs = $request->getQueryString()) {
