@@ -13,12 +13,12 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:J9o8uL3sN7kG2rW1yQ6xP5tE4mA0hD9cF8bV7nZ3eXw=
       - key: JWT_SECRET
-        generateValue: true
+        value: base64:kL9sM2nW7yR4tX1qP5vC6jD8hF3mB0zG7xN4cV9bE2a=
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_auth_db?sslmode=require
 
   # ── API Gateway Service (Public) ──────────────────────────────────────────
@@ -34,7 +34,7 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:/0BMvvQ7EOI6wnn16i2e7TmzKF2CL2h8GknF6ipg66g=
       - key: JWT_SECRET
         fromService:
           type: web
@@ -64,10 +64,10 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:5ZaZykrMggdGqiAh9ssJz8pmNIXeXQSo1GuwTEVqRSo=
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_fleet_db?sslmode=require
 
   # ── CRM Microservice (Private) ───────────────────────────────────────────
@@ -83,10 +83,10 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:OWWqnMcSzlO2ydaDffbz0toNiRtAT7Q99MMJuKwHgFs=
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_crm_db?sslmode=require
 
   # ── Booking Microservice (Private) ───────────────────────────────────────
@@ -102,10 +102,10 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:9/z0vQFnBX4Op4J0CDoVJMYdZoAooshCNWrMOzyH7wM=
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_booking_db?sslmode=require
       - key: FLEET_SERVICE_URL
         value: http://fleet:8001
@@ -127,10 +127,10 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:zN5c6LGqxTziFUSpWkWjLFYGwLsdjkL+GX3Mu354Zx8=
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_billing_db?sslmode=require
       - key: BOOKING_SERVICE_URL
         value: http://booking:8003
