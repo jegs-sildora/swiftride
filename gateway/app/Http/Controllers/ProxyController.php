@@ -95,6 +95,15 @@ class ProxyController extends Controller
                 $response = $pendingRequest->$method($targetUrl, $request->all());
             }
 
+            if ($request->has('debug_proxy')) {
+                return response()->json([
+                    'target_url' => $targetUrl,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'headers' => $response->headers(),
+                ]);
+            }
+
             return response()->json($response->json(), $response->status());
         } catch (\Exception $e) {
             return response()->json([

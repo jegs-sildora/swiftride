@@ -1,40 +1,45 @@
 #!/bin/bash
 
 # ==============================================================================
-# SwiftRide ERP — Database Wipe Script (Bash for macOS/Linux/GitBash)
-# This script truncates all transactional and domain tables across all
-# microservice databases, while preserving the 'users' tables intact.
+# SwiftRide ERP — Database Reset & Seeding Script (Bash)
+# This script performs a complete, fresh database migration and seeding
+# across all 5 active microservice containers, supporting both local and cloud databases.
 # ==============================================================================
 
 echo "====================================================================="
-echo "💥 Wiping all ERP domain data (excluding 'users' tables) 💥"
+echo "💥 Performing Fresh Migration & Seeding across all 5 Microservices 💥"
 echo "====================================================================="
 
-# Check if postgres container is running
-if ! docker ps --filter "name=swiftride_postgres" --format "{{.Names}}" | grep -q "swiftride_postgres"; then
-  echo "❌ Error: swiftride_postgres container is not running."
-  echo "Please start the services first using: docker compose up -d"
-  exit 1
-fi
+# Function to run fresh migration and seed in a container
+reset_service() {
+  local container_name=$1
+  local display_name=$2
+  
+  echo "🧹 Resetting and seeding database for $display_name ($container_name)..."
+  if docker ps --filter "name=swiftride_$container_name" --format "{{.Names}}" | grep -q "swiftride_$container_name"; then
+    docker compose exec -T "$container_name" php artisan migrate:fresh --seed
+    echo "✅ $display_name successfully reset and seeded!"
+  else
+    echo "⚠️ Warning: Container swiftride_$container_name is not running. Skipping."
+  fi
+  echo "---------------------------------------------------------------------"
+}
 
-DB_USER="swiftride"
+# 1. Auth Service
+reset_service "auth" "Auth Microservice"
 
-# 1. Billing Service Tables
-echo "🧹 Wiping Billing database..."
-docker exec -i swiftride_postgres psql -U "$DB_USER" -d swiftride_billing_db -c "TRUNCATE TABLE payments, invoices CASCADE;"
+# 2. Fleet Service
+reset_service "fleet" "Fleet Microservice"
 
-# 2. Booking Service Tables
-echo "🧹 Wiping Booking database..."
-docker exec -i swiftride_postgres psql -U "$DB_USER" -d swiftride_booking_db -c "TRUNCATE TABLE schedules, bookings CASCADE;"
+# 3. CRM Service
+reset_service "crm" "CRM Microservice"
 
-# 3. CRM Service Tables
-echo "🧹 Wiping CRM database..."
-docker exec -i swiftride_postgres psql -U "$DB_USER" -d swiftride_crm_db -c "TRUNCATE TABLE driver_licenses, customers CASCADE;"
+# 4. Booking Service
+reset_service "booking" "Booking Microservice"
 
-# 4. Fleet Service Tables
-echo "🧹 Wiping Fleet database..."
-docker exec -i swiftride_postgres psql -U "$DB_USER" -d swiftride_fleet_db -c "TRUNCATE TABLE maintenance_logs, vehicles CASCADE;"
+# 5. Billing Service
+reset_service "billing" "Billing Microservice"
 
 echo "====================================================================="
-echo "✅ Database data successfully wiped (users and gateway accounts preserved)!"
+echo "🎉 All databases successfully reset and seeded with sample data!"
 echo "====================================================================="

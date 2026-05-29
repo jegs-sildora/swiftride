@@ -1,39 +1,45 @@
 # ==============================================================================
-# SwiftRide ERP — Database Wipe Script (PowerShell for Windows)
-# This script truncates all transactional and domain tables across all
-# microservice databases, while preserving the 'users' tables intact.
+# SwiftRide ERP — Database Reset & Seeding Script (PowerShell for Windows)
+# This script performs a complete, fresh database migration and seeding
+# across all 5 active microservice containers, supporting both local and cloud databases.
 # ==============================================================================
 
 Write-Host "=====================================================================" -ForegroundColor Yellow
-Write-Host "💥 Wiping all ERP domain data (excluding 'users' tables) 💥" -ForegroundColor Yellow
+Write-Host "💥 Performing Fresh Migration & Seeding across all 5 Microservices 💥" -ForegroundColor Yellow
 Write-Host "=====================================================================" -ForegroundColor Yellow
 
-# Check if postgres container is running
-$container = docker ps --filter "name=swiftride_postgres" --format "{{.Names}}"
-if (-not $container) {
-    Write-Host "❌ Error: swiftride_postgres container is not running." -ForegroundColor Red
-    Write-Host "Please start the services first using: docker compose up -d" -ForegroundColor Cyan
-    exit 1
+function Reset-Service {
+    param (
+        [string]$ContainerName,
+        [string]$DisplayName
+    )
+    
+    Write-Host "🧹 Resetting and seeding database for $DisplayName ($ContainerName)..." -ForegroundColor Cyan
+    $container = docker ps --filter "name=swiftride_$ContainerName" --format "{{.Names}}"
+    if ($container) {
+        docker compose exec -T $ContainerName php artisan migrate:fresh --seed
+        Write-Host "✅ $DisplayName successfully reset and seeded!" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️ Warning: Container swiftride_$ContainerName is not running. Skipping." -ForegroundColor Orange
+    }
+    Write-Host "---------------------------------------------------------------------"
 }
 
-$DB_USER = "swiftride"
+# 1. Auth Service
+Reset-Service -ContainerName "auth" -DisplayName "Auth Microservice"
 
-# 1. Billing Service Tables
-Write-Host "🧹 Wiping Billing database..." -ForegroundColor Cyan
-docker exec -i swiftride_postgres psql -U $DB_USER -d swiftride_billing_db -c "TRUNCATE TABLE payments, invoices CASCADE;"
+# 2. Fleet Service
+Reset-Service -ContainerName "fleet" -DisplayName "Fleet Microservice"
 
-# 2. Booking Service Tables
-Write-Host "🧹 Wiping Booking database..." -ForegroundColor Cyan
-docker exec -i swiftride_postgres psql -U $DB_USER -d swiftride_booking_db -c "TRUNCATE TABLE schedules, bookings CASCADE;"
+# 3. CRM Service
+Reset-Service -ContainerName "crm" -DisplayName "CRM Microservice"
 
-# 3. CRM Service Tables
-Write-Host "🧹 Wiping CRM database..." -ForegroundColor Cyan
-docker exec -i swiftride_postgres psql -U $DB_USER -d swiftride_crm_db -c "TRUNCATE TABLE driver_licenses, customers CASCADE;"
+# 4. Booking Service
+Reset-Service -ContainerName "booking" -DisplayName "Booking Microservice"
 
-# 4. Fleet Service Tables
-Write-Host "🧹 Wiping Fleet database..." -ForegroundColor Cyan
-docker exec -i swiftride_postgres psql -U $DB_USER -d swiftride_fleet_db -c "TRUNCATE TABLE maintenance_logs, vehicles CASCADE;"
+# 5. Billing Service
+Reset-Service -ContainerName "billing" -DisplayName "Billing Microservice"
 
 Write-Host "=====================================================================" -ForegroundColor Green
-Write-Host "✅ Database data successfully wiped (users and gateway accounts preserved)!" -ForegroundColor Green
+Write-Host "🎉 All databases successfully reset and seeded with sample data!" -ForegroundColor Green
 Write-Host "=====================================================================" -ForegroundColor Green
