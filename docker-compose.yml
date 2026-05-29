@@ -30,7 +30,8 @@ services:
       APP_KEY: ${AUTH_APP_KEY:-base64:3p+H+2XyWcK/4O4W/1qVvT9zI3/M3v8V+V0jB+YV+f8=}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${AUTH_APP_URL:-http://localhost:8005}
-      DATABASE_URL: ${AUTH_DATABASE_URL}
+      DB_CONNECTION: pgsql
+      DB_URL: ${AUTH_DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - swiftride_network
@@ -86,7 +87,8 @@ services:
       APP_KEY: ${FLEET_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${FLEET_APP_URL:-http://localhost:8001}
-      DATABASE_URL: ${FLEET_DATABASE_URL}
+      DB_CONNECTION: pgsql
+      DB_URL: ${FLEET_DATABASE_URL}
     networks:
       - swiftride_network
     develop:
@@ -111,7 +113,8 @@ services:
       APP_KEY: ${CRM_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${CRM_APP_URL:-http://localhost:8002}
-      DATABASE_URL: ${CRM_DATABASE_URL}
+      DB_CONNECTION: pgsql
+      DB_URL: ${CRM_DATABASE_URL}
     networks:
       - swiftride_network
     develop:
@@ -136,7 +139,8 @@ services:
       APP_KEY: ${BOOKING_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${BOOKING_APP_URL:-http://localhost:8003}
-      DATABASE_URL: ${BOOKING_DATABASE_URL}
+      DB_CONNECTION: pgsql
+      DB_URL: ${BOOKING_DATABASE_URL}
       FLEET_SERVICE_URL: http://fleet:8001
       CRM_SERVICE_URL: http://crm:8002
     networks:
@@ -163,7 +167,8 @@ services:
       APP_KEY: ${BILLING_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${BILLING_APP_URL:-http://localhost:8004}
-      DATABASE_URL: ${BILLING_DATABASE_URL}
+      DB_CONNECTION: pgsql
+      DB_URL: ${BILLING_DATABASE_URL}
       BOOKING_SERVICE_URL: http://booking:8003
     networks:
       - swiftride_network
