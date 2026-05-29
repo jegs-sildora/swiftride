@@ -71,20 +71,40 @@ class ProxyController extends Controller
         }
 
         try {
-            $pendingRequest = Http::withHeaders([
+            $headers = [
                 'Accept'         => 'application/json',
-                'Content-Type'   => 'application/json',
                 'Authorization'  => $request->header('Authorization', ''),
                 'X-Auth-User-Id' => $authUserId,
                 'X-Auth-Role'    => $authRole,
-            ])->timeout(30);
+            ];
 
+            // Only force JSON if the incoming request is JSON.
+            // Otherwise, let the HTTP client set it (e.g. for multipart with boundary)
+            if ($request->isJson()) {
+                $headers['Content-Type'] = 'application/json';
+            }
+
+            $pendingRequest = Http::withHeaders($headers)->timeout(30);
 
             if (in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)) {
                 $response = $pendingRequest->send($request->method(), $targetUrl);
             } else {
                 $method = strtolower($request->method());
-                $response = $pendingRequest->$method($targetUrl, $request->all());
+                
+                // Attach any files for multipart requests
+                foreach ($request->allFiles() as $key => $file) {
+                    if (is_array($file)) {
+                        foreach ($file as $index => $f) {
+                            $pendingRequest->attach("{$key}[{$index}]", file_get_contents($f->getPathname()), $f->getClientOriginalName());
+                        }
+                    } else {
+                        $pendingRequest->attach($key, file_get_contents($file->getPathname()), $file->getClientOriginalName());
+                    }
+                }
+                
+                // Exclude files from the regular payload
+                $payload = $request->except(array_keys($request->allFiles()));
+                $response = $pendingRequest->$method($targetUrl, $payload);
             }
 
 

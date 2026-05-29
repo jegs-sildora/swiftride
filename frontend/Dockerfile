@@ -12,7 +12,7 @@ COPY . .
 
 # Vite reads VITE_* env vars at build time via import.meta.env
 ARG GATEWAY_HOST=localhost:8000
-ENV VITE_API_GATEWAY_URL=https://${GATEWAY_HOST}.onrender.com/api
+ENV VITE_API_GATEWAY_URL=https://${GATEWAY_HOST}/api
 
 RUN pnpm run build
 
