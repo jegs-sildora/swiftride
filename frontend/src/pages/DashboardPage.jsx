@@ -2294,8 +2294,11 @@ export default function DashboardPage() {
               {loadingDocs ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}><Loader size={24} /></div>
               ) : documentsList.length === 0 ? (
-                <div style={{ padding: '1.5rem', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  No uploaded government KYC documents found.
+                <div 
+                   onClick={() => document.getElementById('kyc-file-upload').click()}
+                   style={{ padding: '2rem', textAlign: 'center', background: 'var(--bg-card)', border: '2px dashed var(--border-color)', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={24} style={{ color: 'var(--text-muted)' }} />
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Click to upload government document (PNG, JPG)</span>
                 </div>
               ) : (
                 <div className="table-container" style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -2315,7 +2318,7 @@ export default function DashboardPage() {
                               {String(doc.document_type).replace('_', ' ')}
                             </span>
                           </td>
-                          <td><code>{doc.s3_file_path}</code></td>
+                          <td><code>{doc.file_path || doc.s3_file_path}</code></td>
                           <td style={{ fontSize: '0.75rem' }}>{formatManilaDateTime(doc.created_at || doc.uploaded_at)}</td>
                         </tr>
                       ))}
@@ -2328,15 +2331,23 @@ export default function DashboardPage() {
             {(getActiveRole() === 'admin' || getActiveRole() === 'dispatcher') && (
               <form onSubmit={async (e) => {
                 e.preventDefault();
+                if (!documentForm.file) {
+                  toast.error("Please select a file to upload.");
+                  return;
+                }
+                const formData = new FormData();
+                formData.append('document_type', documentForm.document_type);
+                formData.append('file', documentForm.file);
+
                 try {
-                  await CrmService.uploadDocument(selectedCustomerForDocs.id, documentForm);
+                  await CrmService.uploadDocument(selectedCustomerForDocs.id, formData);
                   toast.success("Document uploaded successfully.");
                   setLoadingDocs(true);
                   const res = await CrmService.listDocuments(selectedCustomerForDocs.id);
                   setDocumentsList(res.data?.data || []);
                   setDocumentForm({
                     document_type: "LICENSE_PHOTO",
-                    s3_file_path: ""
+                    file: null
                   });
                   fetchData();
                 } catch (err) {
@@ -2355,9 +2366,16 @@ export default function DashboardPage() {
                     <option value="NATIONAL_ID">National ID Card Scan</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Simulated Secure Cloud Storage Path (S3 / Disk)</label>
-                  <input required className="input-control" value={documentForm.s3_file_path} onChange={e => setDocumentForm({...documentForm, s3_file_path: e.target.value})} placeholder="e.g. secure-vault/kyc/customer_4_license.jpg" />
+                <div className="form-group" style={{ display: documentsList.length === 0 ? 'none' : 'block' }}>
+                  <label>Upload File (PNG, JPG)</label>
+                  <input 
+                    id="kyc-file-upload"
+                    type="file" 
+                    accept=".png, .jpg, .jpeg" 
+                    className="input-control" 
+                    onChange={e => setDocumentForm({...documentForm, file: e.target.files[0]})} 
+                    style={{ padding: '0.5rem' }}
+                  />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
                   <button type="submit" className="btn-primary"><Plus size={16} /> Upload Secure File</button>
