@@ -11,7 +11,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
-        value: "false"
+        value: "true"
       - key: APP_KEY
         value: base64:J9o8uL3sN7kG2rW1yQ6xP5tE4mA0hD9cF8bV7nZ3eXw=
       - key: JWT_SECRET
@@ -32,7 +32,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
-        value: "false"
+        value: "true"
       - key: APP_KEY
         value: base64:/0BMvvQ7EOI6wnn16i2e7TmzKF2CL2h8GknF6ipg66g=
       - key: JWT_SECRET

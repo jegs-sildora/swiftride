@@ -70,22 +70,31 @@ class ProxyController extends Controller
             $authRole = strtolower($request->header('X-Simulated-Role'));
         }
 
-        $response = Http::withHeaders([
-            'Accept'         => 'application/json',
-            'Content-Type'   => 'application/json',
-            'Authorization'  => $request->header('Authorization', ''),
-            'X-Auth-User-Id' => $authUserId,
-            'X-Auth-Role'    => $authRole,
-        ])
-        ->timeout(30)
-        ->send(
-            $request->method(),
-            $targetUrl,
-            in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)
-                ? []
-                : ['json' => $request->all()],
-        );
+        try {
+            $response = Http::withHeaders([
+                'Accept'         => 'application/json',
+                'Content-Type'   => 'application/json',
+                'Authorization'  => $request->header('Authorization', ''),
+                'X-Auth-User-Id' => $authUserId,
+                'X-Auth-Role'    => $authRole,
+            ])
+            ->timeout(30)
+            ->send(
+                $request->method(),
+                $targetUrl,
+                in_array($request->method(), ['GET', 'DELETE', 'HEAD'], true)
+                    ? []
+                    : ['json' => $request->all()],
+            );
 
-        return response()->json($response->json(), $response->status());
+            return response()->json($response->json(), $response->status());
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Proxy Error',
+                'error'   => $e->getMessage(),
+                'target'  => $targetUrl,
+                'trace'   => $e->getTraceAsString()
+            ], 500);
+        }
     }
 }
