@@ -1,7 +1,7 @@
 services:
 
   # ── Auth Microservice (Private) ──────────────────────────────────────────
-  - type: private
+  - type: pserv
     name: auth
     env: docker
     dockercontext: ./auth
@@ -50,7 +50,7 @@ services:
         value: http://billing:8004
 
   # ── Fleet Microservice (Private) ─────────────────────────────────────────
-  - type: private
+  - type: pserv
     name: fleet
     env: docker
     dockercontext: ./fleet
@@ -68,7 +68,7 @@ services:
         sync: false
 
   # ── CRM Microservice (Private) ───────────────────────────────────────────
-  - type: private
+  - type: pserv
     name: crm
     env: docker
     dockercontext: ./crm
@@ -86,7 +86,7 @@ services:
         sync: false
 
   # ── Booking Microservice (Private) ───────────────────────────────────────
-  - type: private
+  - type: pserv
     name: booking
     env: docker
     dockercontext: ./booking
@@ -110,7 +110,7 @@ services:
         value: http://billing:8004
 
   # ── Billing Microservice (Private) ───────────────────────────────────────
-  - type: private
+  - type: pserv
     name: billing
     env: docker
     dockercontext: ./billing
