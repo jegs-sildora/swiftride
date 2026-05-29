@@ -137,7 +137,7 @@ services:
 
   # ── React Frontend Service (Public) ───────────────────────────────────────
   - type: web
-    name: frontend
+    name: swiftride
     plan: free
     env: docker
     dockerContext: ./frontend
