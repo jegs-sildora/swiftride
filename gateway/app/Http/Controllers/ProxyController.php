@@ -12,6 +12,7 @@ class ProxyController extends Controller
      * Map of URL-segment service names to config keys.
      */
     private array $serviceMap = [
+        'auth'    => 'services.auth.url',
         'fleet'   => 'services.fleet.url',
         'crm'     => 'services.crm.url',
         'booking' => 'services.booking.url',
@@ -72,6 +73,7 @@ class ProxyController extends Controller
         $response = Http::withHeaders([
             'Accept'         => 'application/json',
             'Content-Type'   => 'application/json',
+            'Authorization'  => $request->header('Authorization', ''),
             'X-Auth-User-Id' => $authUserId,
             'X-Auth-Role'    => $authRole,
         ])

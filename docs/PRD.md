@@ -20,11 +20,10 @@ To ensure strict compliance with modern microservices architecture, the applicat
 ---
 
 ## **2. Technology Stack**
-The architecture embraces a polyglot approach, utilizing the **PERN** stack for core microservices while leveraging **Laravel** for the API Gateway and Authentication layer.
+The architecture utilizes a unified **Laravel** framework for all core microservices, the API Gateway, and the Authentication layer.
 
 * **Frontend Interface:** React.js initialized via Vite, utilizing `pnpm` for fast, deterministic dependency management.
-* **Core Microservices (PERN):** Node.js with Express.js for lightweight, scalable REST APIs.
-* **API Gateway & Auth:** Laravel 13 (utilizing Eloquent ORM).
+* **Core Microservices & Gateway:** Laravel 11+ (utilizing Eloquent ORM) for scalable REST APIs and routing.
 * **Databases:** PostgreSQL (five isolated instances, one per microservice).
 * **Containerization:** Docker & Docker Compose.
 * **Deployment Environment:** Render-deploy ready (Web Services + Managed PostgreSQL), with Cloudflare Tunnels utilized for local development exposure.
@@ -54,7 +53,7 @@ The architecture embraces a polyglot approach, utilizing the **PERN** stack for 
 
 ### **Module 2: Fleet Management Service (Inventory)**
 * **Domain Responsibility:** Vehicle tracking and lifecycle management. 
-* **Tech Stack:** Node.js (Express).
+* **Tech Stack:** Laravel (Eloquent ORM).
 * **Database:** `swiftride_fleet_db` (Tables: `vehicles`, `maintenance_logs`)
 * **Core Functionality:**
   * **CRUD Operations:** Add, update, view, and retire vehicles.
@@ -63,7 +62,7 @@ The architecture embraces a polyglot approach, utilizing the **PERN** stack for 
 
 ### **Module 3: Customer Management Service (CRM)**
 * **Domain Responsibility:** Client profile and history management.
-* **Tech Stack:** Node.js (Express).
+* **Tech Stack:** Laravel (Eloquent ORM).
 * **Database:** `swiftride_crm_db` (Tables: `customers`, `driver_licenses`)
 * **Core Functionality:**
   * **Profile Management:** Store and update customer contact information and billing addresses.
@@ -71,7 +70,7 @@ The architecture embraces a polyglot approach, utilizing the **PERN** stack for 
 
 ### **Module 4: Booking Service (Sales & Orders)**
 * **Domain Responsibility:** Reservation orchestration and contract creation.
-* **Tech Stack:** Node.js (Express).
+* **Tech Stack:** Laravel (Eloquent ORM).
 * **Database:** `swiftride_booking_db` (Tables: `bookings`, `schedules`)
 * **Core Functionality:**
   * **Reservation Creation:** Accepts start/end dates, vehicle ID, and customer ID.
@@ -79,7 +78,7 @@ The architecture embraces a polyglot approach, utilizing the **PERN** stack for 
 
 ### **Module 5: Billing Service (Finance)**
 * **Domain Responsibility:** Invoice generation and revenue tracking.
-* **Tech Stack:** Node.js (Express).
+* **Tech Stack:** Laravel (Eloquent ORM).
 * **Database:** `swiftride_billing_db` (Tables: `invoices`, `payments`)
 * **Core Functionality:**
   * **Invoice Generation:** Automatically calculates total cost based on vehicle rates and booking duration.

@@ -2,8 +2,7 @@ version: "3.8"
 
 # ===========================================================
 # SwiftRide ERP — Docker Compose Orchestration
-# Single PostgreSQL instance shared by all 5 microservices.
-# Each service uses its own database within the one Postgres.
+# Each microservice uses its own dedicated PostgreSQL instance.
 # + React/Vite frontend
 # ===========================================================
 
@@ -11,42 +10,37 @@ networks:
   swiftride_network:
     driver: bridge
 
-volumes:
-  postgres_data:
-
 services:
+
   # ===========================================================
-  # DATABASE LAYER — single PostgreSQL instance
-  # All 5 microservices connect to this one container.
-  # The init script creates each service's own database.
+  # SERVICE LAYER — Laravel microservices
   # ===========================================================
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: swiftride_postgres
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: swiftride_auth
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: swiftride_gateway_db
-      POSTGRES_USER: ${DB_USER:-swiftride}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres-init:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "8005:8000"
+    environment:
+      APP_NAME: "SwiftRide Auth"
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${AUTH_APP_KEY:-base64:3p+H+2XyWcK/4O4W/1qVvT9zI3/M3v8V+V0jB+YV+f8=}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${AUTH_APP_URL:-http://localhost:8005}
+      DATABASE_URL: ${AUTH_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - swiftride_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-swiftride} -d swiftride_gateway_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ===========================================================
-  # SERVICE LAYER — 5 Laravel microservices
-  # Services communicate via Docker's internal DNS.
-  # No service accesses another service's database directly.
-  # ===========================================================
+    develop:
+      watch:
+        - action: sync
+          path: ./auth
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   gateway:
     build:
@@ -62,23 +56,21 @@ services:
       APP_KEY: ${GATEWAY_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${GATEWAY_APP_URL:-http://localhost:8000}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: swiftride_gateway_db
-      DB_USERNAME: ${DB_USER:-swiftride}
-      DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      # Internal service URLs resolved via Docker DNS
+      AUTH_SERVICE_URL: http://auth:8000
       FLEET_SERVICE_URL: http://fleet:8001
       CRM_SERVICE_URL: http://crm:8002
       BOOKING_SERVICE_URL: http://booking:8003
       BILLING_SERVICE_URL: http://billing:8004
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: sync
+          path: ./gateway
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   fleet:
     build:
@@ -94,17 +86,16 @@ services:
       APP_KEY: ${FLEET_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${FLEET_APP_URL:-http://localhost:8001}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: swiftride_fleet_db
-      DB_USERNAME: ${DB_USER:-swiftride}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      DATABASE_URL: ${FLEET_DATABASE_URL}
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: sync
+          path: ./fleet
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   crm:
     build:
@@ -120,17 +111,16 @@ services:
       APP_KEY: ${CRM_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${CRM_APP_URL:-http://localhost:8002}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: swiftride_crm_db
-      DB_USERNAME: ${DB_USER:-swiftride}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      DATABASE_URL: ${CRM_DATABASE_URL}
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: sync
+          path: ./crm
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   booking:
     build:
@@ -146,24 +136,18 @@ services:
       APP_KEY: ${BOOKING_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${BOOKING_APP_URL:-http://localhost:8003}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: swiftride_booking_db
-      DB_USERNAME: ${DB_USER:-swiftride}
-      DB_PASSWORD: ${DB_PASSWORD}
-      # Downstream service URLs for inter-service calls (Http facade)
+      DATABASE_URL: ${BOOKING_DATABASE_URL}
       FLEET_SERVICE_URL: http://fleet:8001
       CRM_SERVICE_URL: http://crm:8002
-    depends_on:
-      postgres:
-        condition: service_healthy
-      fleet:
-        condition: service_started
-      crm:
-        condition: service_started
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: sync
+          path: ./booking
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   billing:
     build:
@@ -179,20 +163,17 @@ services:
       APP_KEY: ${BILLING_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${BILLING_APP_URL:-http://localhost:8004}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: swiftride_billing_db
-      DB_USERNAME: ${DB_USER:-swiftride}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DATABASE_URL: ${BILLING_DATABASE_URL}
       BOOKING_SERVICE_URL: http://booking:8003
-    depends_on:
-      postgres:
-        condition: service_healthy
-      booking:
-        condition: service_started
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: sync
+          path: ./billing
+          target: /var/www/html
+          ignore:
+            - vendor/
 
   # ===========================================================
   # PRESENTATION LAYER — React/Vite SPA served via nginx
@@ -212,3 +193,7 @@ services:
       - gateway
     networks:
       - swiftride_network
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend/src

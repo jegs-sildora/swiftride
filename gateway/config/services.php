@@ -35,6 +35,10 @@ return [
         ],
     ],
 
+    'auth' => [
+        'url' => env('AUTH_SERVICE_URL', 'http://auth:8005'),
+    ],
+
     'fleet' => [
         'url' => env('FLEET_SERVICE_URL', 'http://fleet:8001'),
     ],

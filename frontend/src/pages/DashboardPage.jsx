@@ -863,44 +863,6 @@ export default function DashboardPage() {
               <span className="theme-switch-thumb" />
             </button>
 
-            {/* Elegant Role Simulator Dropdown */}
-            {currentUser && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Simulate:</span>
-                <select
-                  value={simulatedRole}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSimulatedRole(val);
-                    if (val) {
-                      localStorage.setItem("swiftride_simulated_role", val);
-                    } else {
-                      localStorage.removeItem("swiftride_simulated_role");
-                    }
-                    toast.success(`Role simulated: ${val ? val.toUpperCase() : 'DEFAULT'}`);
-                    fetchData();
-                  }}
-                  style={{
-                    padding: '0.4rem 0.75rem',
-                    borderRadius: '6px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.8rem',
-                    fontWeight: '600',
-                    outline: 'none',
-                    cursor: 'pointer',
-                    transition: 'border-color 0.2s'
-                  }}
-                >
-                  <option value="">Default ({currentUser?.role?.name || 'staff'})</option>
-                  <option value="admin">Administrator</option>
-                  <option value="dispatcher">Dispatcher</option>
-                  <option value="mechanic">Mechanic</option>
-                  <option value="accountant">Accountant</option>
-                </select>
-              </div>
-            )}
 
             {/* User Profile Card */}
             {currentUser && (
