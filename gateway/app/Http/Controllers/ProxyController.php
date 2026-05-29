@@ -93,6 +93,8 @@ class ProxyController extends Controller
                 'message' => 'Proxy Error',
                 'error'   => $e->getMessage(),
                 'target'  => $targetUrl,
+                'baseUrl' => $baseUrl,
+                'auth_hostport_env' => env('AUTH_HOSTPORT'),
                 'trace'   => $e->getTraceAsString()
             ], 500);
         }
