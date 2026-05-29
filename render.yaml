@@ -1,7 +1,8 @@
 services:
 
   # ── Auth Microservice (Private) ──────────────────────────────────────────
-  - type: pserv
+  - type: web
+    plan: free
     name: auth
     env: docker
     dockerContext: ./auth
@@ -36,7 +37,7 @@ services:
         generateValue: true
       - key: JWT_SECRET
         fromService:
-          type: pserv
+          type: web
           name: auth
           envVarKey: JWT_SECRET
       - key: AUTH_SERVICE_URL
@@ -51,7 +52,8 @@ services:
         value: http://billing:8004
 
   # ── Fleet Microservice (Private) ─────────────────────────────────────────
-  - type: pserv
+  - type: web
+    plan: free
     name: fleet
     env: docker
     dockerContext: ./fleet
@@ -69,7 +71,8 @@ services:
         sync: false
 
   # ── CRM Microservice (Private) ───────────────────────────────────────────
-  - type: pserv
+  - type: web
+    plan: free
     name: crm
     env: docker
     dockerContext: ./crm
@@ -87,7 +90,8 @@ services:
         sync: false
 
   # ── Booking Microservice (Private) ───────────────────────────────────────
-  - type: pserv
+  - type: web
+    plan: free
     name: booking
     env: docker
     dockerContext: ./booking
@@ -111,7 +115,8 @@ services:
         value: http://billing:8004
 
   # ── Billing Microservice (Private) ───────────────────────────────────────
-  - type: pserv
+  - type: web
+    plan: free
     name: billing
     env: docker
     dockerContext: ./billing
