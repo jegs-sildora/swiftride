@@ -40,16 +40,31 @@ services:
           type: web
           name: auth
           envVarKey: JWT_SECRET
-      - key: AUTH_SERVICE_URL
-        value: http://auth:8000
-      - key: FLEET_SERVICE_URL
-        value: http://fleet:8001
-      - key: CRM_SERVICE_URL
-        value: http://crm:8002
-      - key: BOOKING_SERVICE_URL
-        value: http://booking:8003
-      - key: BILLING_SERVICE_URL
-        value: http://billing:8004
+      - key: AUTH_HOSTPORT
+        fromService:
+          type: web
+          name: auth
+          property: hostport
+      - key: FLEET_HOSTPORT
+        fromService:
+          type: web
+          name: fleet
+          property: hostport
+      - key: CRM_HOSTPORT
+        fromService:
+          type: web
+          name: crm
+          property: hostport
+      - key: BOOKING_HOSTPORT
+        fromService:
+          type: web
+          name: booking
+          property: hostport
+      - key: BILLING_HOSTPORT
+        fromService:
+          type: web
+          name: billing
+          property: hostport
 
   # ── Fleet Microservice (Private) ─────────────────────────────────────────
   - type: web
@@ -107,12 +122,21 @@ services:
         value: pgsql
       - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_booking_db?sslmode=require
-      - key: FLEET_SERVICE_URL
-        value: http://fleet:8001
-      - key: CRM_SERVICE_URL
-        value: http://crm:8002
-      - key: BILLING_SERVICE_URL
-        value: http://billing:8004
+      - key: FLEET_HOSTPORT
+        fromService:
+          type: web
+          name: fleet
+          property: hostport
+      - key: CRM_HOSTPORT
+        fromService:
+          type: web
+          name: crm
+          property: hostport
+      - key: BILLING_HOSTPORT
+        fromService:
+          type: web
+          name: billing
+          property: hostport
 
   # ── Billing Microservice (Private) ───────────────────────────────────────
   - type: web
@@ -132,8 +156,11 @@ services:
         value: pgsql
       - key: DB_URL
         value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_billing_db?sslmode=require
-      - key: BOOKING_SERVICE_URL
-        value: http://booking:8003
+      - key: BOOKING_HOSTPORT
+        fromService:
+          type: web
+          name: booking
+          property: hostport
 
   # ── React Frontend Service (Public) ───────────────────────────────────────
   - type: web

@@ -36,23 +36,23 @@ return [
     ],
 
     'auth' => [
-        'url' => env('AUTH_SERVICE_URL', 'http://auth:8005'),
+        'url' => env('AUTH_HOSTPORT') ? 'http://' . env('AUTH_HOSTPORT') : env('AUTH_SERVICE_URL', 'http://auth:8005'),
     ],
 
     'fleet' => [
-        'url' => env('FLEET_SERVICE_URL', 'http://fleet:8001'),
+        'url' => env('FLEET_HOSTPORT') ? 'http://' . env('FLEET_HOSTPORT') : env('FLEET_SERVICE_URL', 'http://fleet:8001'),
     ],
 
     'crm' => [
-        'url' => env('CRM_SERVICE_URL', 'http://crm:8002'),
+        'url' => env('CRM_HOSTPORT') ? 'http://' . env('CRM_HOSTPORT') : env('CRM_SERVICE_URL', 'http://crm:8002'),
     ],
 
     'booking' => [
-        'url' => env('BOOKING_SERVICE_URL', 'http://booking:8003'),
+        'url' => env('BOOKING_HOSTPORT') ? 'http://' . env('BOOKING_HOSTPORT') : env('BOOKING_SERVICE_URL', 'http://booking:8003'),
     ],
 
     'billing' => [
-        'url' => env('BILLING_SERVICE_URL', 'http://billing:8004'),
+        'url' => env('BILLING_HOSTPORT') ? 'http://' . env('BILLING_HOSTPORT') : env('BILLING_SERVICE_URL', 'http://billing:8004'),
     ],
 
 ];

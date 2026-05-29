@@ -42,15 +42,15 @@ return [
     */
 
     'fleet' => [
-        'url' => env('FLEET_SERVICE_URL', 'http://fleet:8001'),
+        'url' => env('FLEET_HOSTPORT') ? 'http://' . env('FLEET_HOSTPORT') : env('FLEET_SERVICE_URL', 'http://fleet:8001'),
     ],
 
     'crm' => [
-        'url' => env('CRM_SERVICE_URL', 'http://crm:8002'),
+        'url' => env('CRM_HOSTPORT') ? 'http://' . env('CRM_HOSTPORT') : env('CRM_SERVICE_URL', 'http://crm:8002'),
     ],
 
     'billing' => [
-        'url' => env('BILLING_SERVICE_URL', 'http://billing:8004'),
+        'url' => env('BILLING_HOSTPORT') ? 'http://' . env('BILLING_HOSTPORT') : env('BILLING_SERVICE_URL', 'http://billing:8004'),
     ],
 
 ];
