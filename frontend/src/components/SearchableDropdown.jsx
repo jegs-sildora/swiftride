@@ -46,7 +46,7 @@ export default function SearchableDropdown({
 
   // Handle custom input typing (for Make, Model, Color)
   const handleInputChange = (e) => {
-    const val = e.target.value.toUpperCase();
+    const val = e.target.value;
     onChange(val);
     setSearchQuery(val);
     if (!isOpen) setIsOpen(true);
@@ -78,7 +78,7 @@ export default function SearchableDropdown({
             onChange={handleInputChange}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}
-            style={{ textTransform: 'uppercase' }}
+           
           />
           <div style={{ 
             position: 'absolute', 
@@ -174,13 +174,13 @@ export default function SearchableDropdown({
                 className="input-control"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ 
                   background: 'none', 
                   border: 'none', 
                   padding: '0.4rem 0.2rem',
                   fontSize: '0.85rem',
-                  textTransform: 'uppercase',
+                 
                   boxShadow: 'none'
                 }}
               />

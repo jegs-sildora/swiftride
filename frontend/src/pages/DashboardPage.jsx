@@ -1458,7 +1458,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="form-group">
                   <label>Plate Number</label>
-                  <input required className="input-control" value={vehicleForm.plate_number} onChange={(e) => setVehicleForm({...vehicleForm, plate_number: e.target.value.toUpperCase()})} placeholder="ABC-1234" style={{ textTransform: 'uppercase' }} />
+                  <input required className="input-control" value={vehicleForm.plate_number} onChange={(e) => setVehicleForm({...vehicleForm, plate_number: e.target.value})} placeholder="ABC-1234" />
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
@@ -1499,7 +1499,7 @@ export default function DashboardPage() {
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Insurance Policy Number</label>
-                  <input className="input-control" value={vehicleForm.insurance_policy_number} onChange={(e) => setVehicleForm({...vehicleForm, insurance_policy_number: e.target.value.toUpperCase()})} placeholder="POL-12345" style={{ textTransform: 'uppercase' }} />
+                  <input className="input-control" value={vehicleForm.insurance_policy_number} onChange={(e) => setVehicleForm({...vehicleForm, insurance_policy_number: e.target.value})} placeholder="POL-12345" />
                 </div>
                 <div className="form-group">
                   <label>Insurance Expiry Date</label>
@@ -1530,24 +1530,24 @@ export default function DashboardPage() {
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>First Name</label>
-                  <input required className="input-control" value={customerForm.first_name} onChange={(e) => setCustomerForm({...customerForm, first_name: e.target.value.toUpperCase()})} placeholder="JUAN" style={{ textTransform: 'uppercase' }} />
+                  <input required className="input-control" value={customerForm.first_name} onChange={(e) => setCustomerForm({...customerForm, first_name: e.target.value})} placeholder="JUAN" />
                 </div>
                 <div className="form-group">
                   <label>Last Name</label>
-                  <input required className="input-control" value={customerForm.last_name} onChange={(e) => setCustomerForm({...customerForm, last_name: e.target.value.toUpperCase()})} placeholder="DELA CRUZ" style={{ textTransform: 'uppercase' }} />
+                  <input required className="input-control" value={customerForm.last_name} onChange={(e) => setCustomerForm({...customerForm, last_name: e.target.value})} placeholder="DELA CRUZ" />
                 </div>
               </div>
               <div className="form-group">
                 <label>Email Address</label>
-                <input required type="email" className="input-control" value={customerForm.email} onChange={(e) => setCustomerForm({...customerForm, email: e.target.value.toUpperCase()})} placeholder="JUAN@GMAIL.COM" style={{ textTransform: 'uppercase' }} />
+                <input required type="email" className="input-control" value={customerForm.email} onChange={(e) => setCustomerForm({...customerForm, email: e.target.value})} placeholder="JUAN@GMAIL.COM" />
               </div>
               <div className="form-group">
                 <label>Phone Number</label>
-                <input className="input-control" value={customerForm.phone} onChange={(e) => setCustomerForm({...customerForm, phone: e.target.value.toUpperCase()})} placeholder="09171234567" style={{ textTransform: 'uppercase' }} />
+                <input className="input-control" value={customerForm.phone} onChange={(e) => setCustomerForm({...customerForm, phone: e.target.value})} placeholder="09171234567" />
               </div>
               <div className="form-group">
                 <label>Billing Address</label>
-                <input className="input-control" value={customerForm.billing_address} onChange={(e) => setCustomerForm({...customerForm, billing_address: e.target.value.toUpperCase()})} placeholder="123 RIZAL ST" style={{ textTransform: 'uppercase' }} />
+                <input className="input-control" value={customerForm.billing_address} onChange={(e) => setCustomerForm({...customerForm, billing_address: e.target.value})} placeholder="123 RIZAL ST" />
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseAddCustomer} className="btn-secondary">Cancel</button>
@@ -1586,7 +1586,7 @@ export default function DashboardPage() {
               </div>
               <div className="form-group">
                 <label>License Number</label>
-                <input required className="input-control" value={licenseForm.license_number} onChange={(e) => setLicenseForm({...licenseForm, license_number: e.target.value.toUpperCase()})} placeholder="N01-23-456789" style={{ textTransform: 'uppercase' }} />
+                <input required className="input-control" value={licenseForm.license_number} onChange={(e) => setLicenseForm({...licenseForm, license_number: e.target.value})} placeholder="N01-23-456789" />
               </div>
               <div className="form-group">
                 <label>Expiry Date</label>
@@ -1595,11 +1595,11 @@ export default function DashboardPage() {
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Issuing Authority</label>
-                  <input className="input-control" value={licenseForm.issuing_authority} onChange={(e) => setLicenseForm({...licenseForm, issuing_authority: e.target.value.toUpperCase()})} placeholder="LTO" style={{ textTransform: 'uppercase' }} />
+                  <input className="input-control" value={licenseForm.issuing_authority} onChange={(e) => setLicenseForm({...licenseForm, issuing_authority: e.target.value})} placeholder="LTO" />
                 </div>
                 <div className="form-group">
                   <label>License Class</label>
-                  <input className="input-control" value={licenseForm.license_class} onChange={(e) => setLicenseForm({...licenseForm, license_class: e.target.value.toUpperCase()})} placeholder="B" style={{ textTransform: 'uppercase' }} />
+                  <input className="input-control" value={licenseForm.license_class} onChange={(e) => setLicenseForm({...licenseForm, license_class: e.target.value})} placeholder="B" />
                 </div>
               </div>
               <div className="modal-footer">
@@ -1701,7 +1701,7 @@ export default function DashboardPage() {
               </div>
               <div className="form-group">
                 <label>Notes</label>
-                <textarea className="input-control" value={bookingForm.notes} onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value.toUpperCase()})} placeholder="SPECIAL REQUESTS..." style={{ height: "80px", resize: "none", textTransform: 'uppercase' }} />
+                <textarea className="input-control" value={bookingForm.notes} onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})} placeholder="SPECIAL REQUESTS..." style={{ height: "80px", resize: "none" }} />
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseAddBooking} className="btn-secondary">Cancel</button>
@@ -1778,7 +1778,7 @@ export default function DashboardPage() {
               </div>
               <div className="form-group">
                 <label>Notes</label>
-                <textarea className="input-control" value={invoiceForm.notes} onChange={(e) => setInvoiceForm({...invoiceForm, notes: e.target.value.toUpperCase()})} placeholder="INVOICE NOTES..." style={{ height: "80px", resize: "none", textTransform: 'uppercase' }} />
+                <textarea className="input-control" value={invoiceForm.notes} onChange={(e) => setInvoiceForm({...invoiceForm, notes: e.target.value})} placeholder="INVOICE NOTES..." style={{ height: "80px", resize: "none" }} />
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditInvoice} className="btn-secondary">Cancel</button>
@@ -2265,7 +2265,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="form-group">
                   <label>Body Damage & Notes</label>
-                  <input className="input-control" value={inspectionForm.body_damage_notes} onChange={e => setInspectionForm({...inspectionForm, body_damage_notes: e.target.value.toUpperCase()})} placeholder="NO DENTS, MINOR SCRATCH ON FRONT BUMPER..." style={{ textTransform: 'uppercase' }} />
+                  <input className="input-control" value={inspectionForm.body_damage_notes} onChange={e => setInspectionForm({...inspectionForm, body_damage_notes: e.target.value})} placeholder="NO DENTS, MINOR SCRATCH ON FRONT BUMPER..." />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
                   <button type="submit" className="btn-primary"><Check size={16} /> Submit Inspection Report</button>
@@ -2566,11 +2566,11 @@ export default function DashboardPage() {
               </div>
               <div className="form-group">
                 <label>Transaction / Reference Authorization Code</label>
-                <input required className="input-control" value={refundForm.reference_code} onChange={e => setRefundForm({...refundForm, reference_code: e.target.value.toUpperCase()})} placeholder="REF-GCASH-12345" style={{ textTransform: 'uppercase' }} />
+                <input required className="input-control" value={refundForm.reference_code} onChange={e => setRefundForm({...refundForm, reference_code: e.target.value})} placeholder="REF-GCASH-12345" />
               </div>
               <div className="form-group">
                 <label>Refund Reason & Audit Notes</label>
-                <textarea className="input-control" value={refundForm.notes} onChange={e => setRefundForm({...refundForm, notes: e.target.value.toUpperCase()})} placeholder="CUSTOMER TRIP CANCELLED, REFUND APPROVED BY FINANCE MANAGER..." style={{ height: "80px", resize: "none", textTransform: 'uppercase' }} />
+                <textarea className="input-control" value={refundForm.notes} onChange={e => setRefundForm({...refundForm, notes: e.target.value})} placeholder="CUSTOMER TRIP CANCELLED, REFUND APPROVED BY FINANCE MANAGER..." style={{ height: "80px", resize: "none" }} />
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={() => setShowRefundModal(false)} className="btn-secondary">Cancel</button>
