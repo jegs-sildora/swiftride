@@ -60,6 +60,7 @@ class InvoiceController extends Controller
         if (!empty($validated['line_items'])) {
             foreach ($validated['line_items'] as $item) {
                 // Calculate VAT inclusive extraction (12% standard PH VAT)
+                // Note: Tax rate configurations should ideally be moved to dynamic DB settings for scaling.
                 $subtotal = (float)$item['subtotal'];
                 $net = $subtotal / 1.12;
                 $vatAmount = round($subtotal - $net, 2);
