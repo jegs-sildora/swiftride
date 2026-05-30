@@ -38,6 +38,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Note: Government ID verification logic is handled asynchronously in production flows.
         $validated = $request->validate([
             'first_name'             => 'required|string|max:100',
             'last_name'              => 'required|string|max:100',
