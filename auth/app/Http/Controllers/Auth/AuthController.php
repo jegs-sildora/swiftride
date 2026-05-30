@@ -88,6 +88,8 @@ class AuthController extends Controller
 
     /**
      * Stateless logout — instruct the client to discard the token.
+     * Note: In a production environment with strict security requirements, 
+     * consider implementing token blocklisting (e.g., via Redis) to invalidate tokens before expiration.
      */
     public function logout(): JsonResponse
     {
