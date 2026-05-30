@@ -38,6 +38,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Note: Government ID verification logic is handled asynchronously in production flows.
         $validated = $request->validate([
             'first_name'             => 'required|string|max:100',
             'last_name'              => 'required|string|max:100',
@@ -57,7 +58,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Show a customer with their driver licenses.
+     * Show a customer with their driver licenses and uploaded documents.
      * GET /api/customers/{id}
      */
     public function show(int $id): JsonResponse
