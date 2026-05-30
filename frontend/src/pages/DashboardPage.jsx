@@ -1205,9 +1205,11 @@ export default function DashboardPage() {
                                 {verificationResult.eligible ? (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                     <div>✔ Eligible. Valid License ID: #{verificationResult.license_id}</div>
-                                    <button onClick={() => handleVerifyLicense(verificationResult.license_id)} className="btn-secondary" style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', width: 'fit-content', marginTop: '0.25rem' }}>
-                                      <Shield size={12} /> Mark License Verified
-                                    </button>
+                                    {!c.government_id_verified && (
+                                      <button onClick={() => handleVerifyLicense(verificationResult.license_id)} className="btn-secondary" style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', width: 'fit-content', marginTop: '0.25rem' }}>
+                                        <Shield size={12} /> Mark License Verified
+                                      </button>
+                                    )}
                                   </div>
                                 ) : (
                                   <div>✘ Ineligible: {verificationResult.reason}</div>
@@ -1548,6 +1550,26 @@ export default function DashboardPage() {
               <div className="form-group">
                 <label>Billing Address</label>
                 <input className="input-control" value={customerForm.billing_address} onChange={(e) => setCustomerForm({...customerForm, billing_address: e.target.value})} placeholder="123 RIZAL ST" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>City</label>
+                  <input className="input-control" value={customerForm.city} onChange={(e) => setCustomerForm({...customerForm, city: e.target.value})} placeholder="Bacolod City" />
+                </div>
+                <div className="form-group">
+                  <label>State / Province</label>
+                  <input className="input-control" value={customerForm.state} onChange={(e) => setCustomerForm({...customerForm, state: e.target.value})} placeholder="Negros Occidental" />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Postal Code</label>
+                  <input className="input-control" value={customerForm.postal_code} onChange={(e) => setCustomerForm({...customerForm, postal_code: e.target.value})} placeholder="6100" />
+                </div>
+                <div className="form-group">
+                  <label>Country</label>
+                  <input className="input-control" value={customerForm.country} onChange={(e) => setCustomerForm({...customerForm, country: e.target.value})} placeholder="Philippines" />
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseAddCustomer} className="btn-secondary">Cancel</button>
@@ -1909,21 +1931,7 @@ export default function DashboardPage() {
                   </button>
                 </>
               )}
-              <button 
-                onClick={() => {
-                  setSelectedCustomerForDocs(activeActionsMenu.data);
-                  setShowDocumentsModal(true);
-                  setLoadingDocs(true);
-                  CrmService.listDocuments(activeActionsMenu.data.id)
-                    .then(res => setDocumentsList(res.data?.data || []))
-                    .catch(() => toast.error("Failed to load documents."))
-                    .finally(() => setLoadingDocs(false));
-                  setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                }} 
-                className="actions-dropdown-item"
-              >
-                <FileText size={14} /> Document Vault
-              </button>
+
               {getActiveRole() === 'admin' && (
                 <>
                   <div className="actions-dropdown-divider" />
