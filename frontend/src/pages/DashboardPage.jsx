@@ -1427,7 +1427,7 @@ export default function DashboardPage() {
               <h2>{isEditing ? "Edit Vehicle Details" : "Add New Vehicle"}</h2>
             </div>
             <form onSubmit={handleAddVehicle}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Make</label>
                   <SearchableDropdown
@@ -1451,7 +1451,7 @@ export default function DashboardPage() {
                   />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Year</label>
                   <input required type="number" className="input-control" value={vehicleForm.year} onChange={(e) => setVehicleForm({...vehicleForm, year: parseInt(e.target.value)})} />
@@ -1461,7 +1461,7 @@ export default function DashboardPage() {
                   <input required className="input-control" value={vehicleForm.plate_number} onChange={(e) => setVehicleForm({...vehicleForm, plate_number: e.target.value.toUpperCase()})} placeholder="ABC-1234" style={{ textTransform: 'uppercase' }} />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Type</label>
                   <select className="input-control" value={vehicleForm.type} onChange={(e) => setVehicleForm({...vehicleForm, type: e.target.value})}>
@@ -1486,7 +1486,7 @@ export default function DashboardPage() {
                   allowCustom={true}
                 />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Current Odometer (KM)</label>
                   <input type="number" className="input-control" value={vehicleForm.current_odometer} onChange={(e) => setVehicleForm({...vehicleForm, current_odometer: e.target.value})} placeholder="10000" />
@@ -1496,7 +1496,7 @@ export default function DashboardPage() {
                   <input type="number" step="0.1" className="input-control" value={vehicleForm.fuel_tank_capacity_liters} onChange={(e) => setVehicleForm({...vehicleForm, fuel_tank_capacity_liters: e.target.value})} placeholder="50" />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Insurance Policy Number</label>
                   <input className="input-control" value={vehicleForm.insurance_policy_number} onChange={(e) => setVehicleForm({...vehicleForm, insurance_policy_number: e.target.value.toUpperCase()})} placeholder="POL-12345" style={{ textTransform: 'uppercase' }} />
@@ -1527,7 +1527,7 @@ export default function DashboardPage() {
               <h2>{isEditing ? "Edit Customer Details" : "Register Customer"}</h2>
             </div>
             <form onSubmit={handleAddCustomer}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>First Name</label>
                   <input required className="input-control" value={customerForm.first_name} onChange={(e) => setCustomerForm({...customerForm, first_name: e.target.value.toUpperCase()})} placeholder="JUAN" style={{ textTransform: 'uppercase' }} />
@@ -1592,7 +1592,7 @@ export default function DashboardPage() {
                 <label>Expiry Date</label>
                 <input required type="date" className="input-control" value={licenseForm.expiry_date} onChange={(e) => setLicenseForm({...licenseForm, expiry_date: e.target.value})} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Issuing Authority</label>
                   <input className="input-control" value={licenseForm.issuing_authority} onChange={(e) => setLicenseForm({...licenseForm, issuing_authority: e.target.value.toUpperCase()})} placeholder="LTO" style={{ textTransform: 'uppercase' }} />
@@ -1614,13 +1614,13 @@ export default function DashboardPage() {
       {/* Add Booking Modal */}
       {showAddBooking && (
         <div className="modal-overlay" onClick={handleCloseAddBooking}>
-          <div className="card modal-content" onClick={e => e.stopPropagation()}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%' }}>
             <div className="modal-header">
               <div className="modal-header-icon"><Calendar size={20} /></div>
               <h2>{isEditing ? "Edit Booking Details" : "Create Booking"}</h2>
             </div>
             <form onSubmit={handleAddBooking}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Customer</label>
                   <SearchableDropdown
@@ -1652,7 +1652,7 @@ export default function DashboardPage() {
                   />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Start Date</label>
                   <input required type="date" className="input-control" value={bookingForm.start_date} onChange={(e) => setBookingForm({...bookingForm, start_date: e.target.value})} />
@@ -1662,7 +1662,7 @@ export default function DashboardPage() {
                   <input required type="date" className="input-control" value={bookingForm.end_date} onChange={(e) => setBookingForm({...bookingForm, end_date: e.target.value})} />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Pickup Location Hub</label>
                   <select className="input-control" value={bookingForm.pickup_location_id} onChange={(e) => setBookingForm({...bookingForm, pickup_location_id: e.target.value})}>
