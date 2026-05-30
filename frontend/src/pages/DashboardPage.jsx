@@ -447,7 +447,7 @@ export default function DashboardPage() {
       handleCloseAddVehicle();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} vehicle.`);
+      toast.error(err.response?.data?.error || err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} vehicle.`);
     }
   };
 
@@ -475,7 +475,7 @@ export default function DashboardPage() {
       handleCloseAddCustomer();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'register'} customer.`);
+      toast.error(err.response?.data?.error || err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'register'} customer.`);
     }
   };
 
@@ -488,7 +488,7 @@ export default function DashboardPage() {
       toast.success("Driver's license saved.");
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save driver's license.");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to save driver's license.");
     }
   };
 
@@ -530,7 +530,7 @@ export default function DashboardPage() {
       handleCloseAddBooking();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} booking.`);
+      toast.error(err.response?.data?.error || err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} booking.`);
     }
   };
 
@@ -554,7 +554,7 @@ export default function DashboardPage() {
       toast.success('Payment recorded successfully!');
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to record payment.");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to record payment.");
     }
   };
 
@@ -566,7 +566,7 @@ export default function DashboardPage() {
       handleCloseEditInvoice();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update invoice.");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to update invoice.");
     }
   };
 
@@ -582,7 +582,7 @@ export default function DashboardPage() {
           toast.success('Vehicle deleted successfully!');
           fetchData();
         } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to delete vehicle.');
+          toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to delete vehicle.');
         }
         closeConfirm();
       }
@@ -601,7 +601,7 @@ export default function DashboardPage() {
           toast.success('Customer deleted successfully!');
           fetchData();
         } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to delete customer.');
+          toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to delete customer.');
         }
         closeConfirm();
       }
@@ -620,7 +620,7 @@ export default function DashboardPage() {
           toast.success('Booking record deleted successfully!');
           fetchData();
         } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to delete booking record.');
+          toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to delete booking record.');
         }
         closeConfirm();
       }
@@ -639,7 +639,7 @@ export default function DashboardPage() {
           toast.success('Invoice voided successfully!');
           fetchData();
         } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to void invoice.');
+          toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to void invoice.');
         }
         closeConfirm();
       }
@@ -2212,7 +2212,7 @@ export default function DashboardPage() {
                   });
                   fetchData();
                 } catch (err) {
-                  toast.error(err.response?.data?.message || "Failed to log inspection.");
+                  toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to log inspection.");
                 } finally {
                   setLoadingInspections(false);
                 }
@@ -2351,7 +2351,7 @@ export default function DashboardPage() {
                   });
                   fetchData();
                 } catch (err) {
-                  toast.error(err.response?.data?.message || "Failed to upload document.");
+                  toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to upload document.");
                 } finally {
                   setLoadingDocs(false);
                 }
@@ -2544,7 +2544,7 @@ export default function DashboardPage() {
                 });
                 fetchData();
               } catch (err) {
-                toast.error(err.response?.data?.message || "Failed to process refund.");
+                toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to process refund.");
               }
             }}>
               <div className="form-group">
