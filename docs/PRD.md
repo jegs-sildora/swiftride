@@ -22,7 +22,7 @@ To ensure strict compliance with modern microservices architecture, the applicat
 ## **2. Technology Stack**
 The architecture utilizes a unified **Laravel** framework for all core microservices, the API Gateway, and the Authentication layer.
 
-* **Frontend Interface:** React.js initialized via Vite, utilizing `pnpm` for fast, deterministic dependency management.
+* **Frontend Interface:** React.js initialized via Vite, utilizing `pnpm` for fast, deterministic dependency management. Includes a custom reusable component library for modals, toasts, and icons.
 * **Core Microservices & Gateway:** Laravel 11+ (utilizing Eloquent ORM) for scalable REST APIs and routing.
 * **Databases:** PostgreSQL (five isolated instances, one per microservice).
 * **Containerization:** Docker & Docker Compose.
