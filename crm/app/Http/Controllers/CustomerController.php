@@ -57,7 +57,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Show a customer with their driver licenses.
+     * Show a customer with their driver licenses and uploaded documents.
      * GET /api/customers/{id}
      */
     public function show(int $id): JsonResponse
