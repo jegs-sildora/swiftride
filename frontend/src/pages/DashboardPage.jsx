@@ -107,9 +107,7 @@ export default function DashboardPage() {
     pickup_location_id: "1", return_location_id: "1",
     addon_gps: false, addon_wifi: false, addon_driver: false
   });
-  const [paymentForm, setPaymentForm] = useState({
-    invoice_id: "", amount_paid: "", payment_method: "Cash"
-  });
+  const [paymentForm, setPaymentForm] = useState({ invoice_id: "", amount_paid: "", payment_method: "cash" });
   const [invoiceForm, setInvoiceForm] = useState({
     amount: "", due_date: "", notes: ""
   });
@@ -482,10 +480,13 @@ export default function DashboardPage() {
   const handleAddLicense = async (e) => {
     e.preventDefault();
     try {
-      await CrmService.createLicense(licenseForm);
+      const res = await CrmService.createLicense(licenseForm);
+      if (res.data && res.data.id) {
+        await CrmService.verifyLicense(res.data.id);
+      }
       setShowAddLicense(false);
       setLicenseForm({ customer_id: "", license_number: "", expiry_date: "", issuing_authority: "", license_class: "B" });
-      toast.success("Driver's license saved.");
+      toast.success("Driver's license saved and verified!");
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to save driver's license.");
@@ -548,9 +549,14 @@ export default function DashboardPage() {
   const handleRecordPayment = async (e) => {
     e.preventDefault();
     try {
-      await BillingService.recordPayment(paymentForm);
+      const payload = {
+        invoice_id: paymentForm.invoice_id,
+        amount: parseFloat(paymentForm.amount_paid),
+        method: paymentForm.payment_method,
+      };
+      await BillingService.recordPayment(payload);
       setShowRecordPayment(false);
-      setPaymentForm({ invoice_id: "", amount_paid: "", payment_method: "Cash" });
+      setPaymentForm({ invoice_id: "", amount_paid: "", payment_method: "cash" });
       toast.success('Payment recorded successfully!');
       fetchData();
     } catch (err) {
@@ -684,6 +690,7 @@ export default function DashboardPage() {
       case '2': return 'NAIA Airport T3 Hub';
       case '3': return 'Cebu Hub';
       case '4': return 'Davao Hub';
+      case '5': return 'Bacolod Hub';
       default: return `Hub #${id}`;
     }
   };
@@ -1626,7 +1633,7 @@ export default function DashboardPage() {
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={() => setShowAddLicense(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><FileText size={16} /> Save License</button>
+                <button type="submit" className="btn-primary"><Shield size={16} /> Save & Verify License</button>
               </div>
             </form>
           </div>
@@ -1692,6 +1699,7 @@ export default function DashboardPage() {
                     <option value="2">NAIA Airport T3 Hub</option>
                     <option value="3">Cebu Hub</option>
                     <option value="4">Davao Hub</option>
+                    <option value="5">Bacolod Hub</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -1701,6 +1709,7 @@ export default function DashboardPage() {
                     <option value="2">NAIA Airport T3 Hub</option>
                     <option value="3">Cebu Hub</option>
                     <option value="4">Davao Hub</option>
+                    <option value="5">Bacolod Hub</option>
                   </select>
                 </div>
               </div>
@@ -1767,9 +1776,9 @@ export default function DashboardPage() {
               <div className="form-group">
                 <label>Payment Method</label>
                 <select className="input-control" value={paymentForm.payment_method} onChange={(e) => setPaymentForm({...paymentForm, payment_method: e.target.value})}>
-                  <option value="Cash">Cash</option>
-                  <option value="Card">Card</option>
-                  <option value="Transfer">Bank Transfer</option>
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="bank_transfer">Bank Transfer</option>
                 </select>
               </div>
               <div className="modal-footer">
@@ -1919,15 +1928,6 @@ export default function DashboardPage() {
                     className="actions-dropdown-item"
                   >
                     <Edit size={14} /> Edit Customer
-                  </button>
-                  <button 
-                    onClick={() => {
-                      handleVerifyCustomer(activeActionsMenu.data.id);
-                      setActiveActionsMenu({ type: null, id: null, rect: null, data: null });
-                    }} 
-                    className="actions-dropdown-item"
-                  >
-                    <Shield size={14} /> Verify Eligibility
                   </button>
                 </>
               )}
@@ -2448,7 +2448,7 @@ export default function DashboardPage() {
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
                         <th style={{ padding: '0.4rem 0' }}>Description</th>
-                        <th style={{ padding: '0.4rem 0', textAlign: 'center' }}>Qty</th>
+                        <th style={{ padding: '0.4rem 0', textAlign: 'center' }}>Days / Qty</th>
                         <th style={{ padding: '0.4rem 0', textAlign: 'right' }}>Price</th>
                         <th style={{ padding: '0.4rem 0', textAlign: 'right' }}>Amount</th>
                       </tr>
@@ -2457,7 +2457,7 @@ export default function DashboardPage() {
                       {receiptDetails.invoice_line_items && receiptDetails.invoice_line_items.length > 0 ? (
                         receiptDetails.invoice_line_items.map(item => (
                           <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                            <td style={{ padding: '0.5rem 0', color: 'var(--text-primary)', fontWeight: '500' }}>{item.item_description}</td>
+                            <td style={{ padding: '0.5rem 0', color: 'var(--text-primary)', fontWeight: '500' }}>{item.description || item.item_description || "Base Rental / Add-on"}</td>
                             <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{item.quantity || 1}</td>
                             <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>₱{parseFloat(item.unit_price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                             <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: '600' }}>₱{parseFloat(item.subtotal || item.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>

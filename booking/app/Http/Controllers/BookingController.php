@@ -60,7 +60,7 @@ class BookingController extends Controller
             'vehicle_id'              => 'required|integer',
             'start_date'              => 'required|date|after_or_equal:today',
             'end_date'                => 'required|date|after:start_date',
-            'notes'                   => 'sometimes|string|max:1000',
+            'notes'                   => 'nullable|string|max:1000',
             'pickup_location'         => 'sometimes|string|max:255',
             'return_location'         => 'sometimes|string|max:255',
             'security_deposit_amount' => 'sometimes|numeric|min:0',
@@ -162,6 +162,38 @@ class BookingController extends Controller
             Log::warning("Failed to mark vehicle {$validated['vehicle_id']} as rented in Fleet service.");
         });
 
+        // Compile itemized line items
+        $lineItems = [];
+
+        // 1. Base rental
+        $lineItems[] = [
+            'description' => "Base Vehicle Rental (₱" . number_format($dailyRate, 2) . "/day for {$days} days)",
+            'unit_price'  => $dailyRate,
+            'quantity'    => $days,
+            'subtotal'    => $baseCost,
+        ];
+
+        // 2. Addons
+        foreach ($addonsData as $addon) {
+            $addonDesc = str_replace('_', ' ', $addon['addon_type']);
+            $lineItems[] = [
+                'description' => "Add-on: {$addonDesc} (₱" . number_format($addon['daily_rate'], 2) . "/day)",
+                'unit_price'  => $addon['daily_rate'],
+                'quantity'    => $days,
+                'subtotal'    => $addon['total_cost'],
+            ];
+        }
+
+        // Call Billing Service to generate invoice automatically
+        Http::timeout(5)->post("{$this->billingUrl}/api/invoices", [
+            'booking_id'  => $booking->id,
+            'customer_id' => $booking->customer_id,
+            'amount'      => $booking->total_cost,
+            'due_date'    => now()->addDays(7)->toDateString(),
+            'notes'       => "Invoice generated automatically for new booking #{$booking->id}",
+            'line_items'  => $lineItems,
+        ])->onError(fn($e) => Log::warning("Failed to generate invoice for booking {$booking->id}: " . $e->getMessage()));
+
         return response()->json($booking->load('bookingAddons'), 201);
     }
 
@@ -184,7 +216,7 @@ class BookingController extends Controller
 
         $validated = $request->validate([
             'status'                  => 'sometimes|in:pending,confirmed,active,completed,cancelled',
-            'notes'                   => 'sometimes|string|max:1000',
+            'notes'                   => 'nullable|string|max:1000',
             'confirmed_by'            => 'sometimes|integer',
             'security_deposit_status' => 'sometimes|in:held,refunded,forfeited',
         ]);
@@ -193,45 +225,11 @@ class BookingController extends Controller
             $validated['confirmed_at'] = now();
         }
 
-        // If booking is completed, free the vehicle (best-effort) and generate invoice
+        // If booking is completed, free the vehicle (best-effort)
         if (($validated['status'] ?? null) === 'completed') {
             Http::timeout(5)->patch("{$this->fleetUrl}/api/vehicles/{$booking->vehicle_id}/status", [
                 'status' => 'available',
             ])->onError(fn() => Log::warning("Failed to release vehicle {$booking->vehicle_id} after booking completion."));
-
-            // Compile itemized line items
-            $days = max(\Carbon\Carbon::parse($booking->start_date)->diffInDays(\Carbon\Carbon::parse($booking->end_date)), 1);
-            $baseCost = round((float)$booking->daily_rate * $days, 2);
-            $lineItems = [];
-
-            // 1. Base rental
-            $lineItems[] = [
-                'description' => "Base Vehicle Rental (₱" . number_format($booking->daily_rate, 2) . "/day for {$days} days)",
-                'unit_price'  => (float)$booking->daily_rate,
-                'quantity'    => $days,
-                'subtotal'    => $baseCost,
-            ];
-
-            // 2. Addons
-            foreach ($booking->bookingAddons as $addon) {
-                $addonDesc = str_replace('_', ' ', $addon->addon_type);
-                $lineItems[] = [
-                    'description' => "Add-on: {$addonDesc} (₱" . number_format($addon->daily_rate, 2) . "/day)",
-                    'unit_price'  => (float)$addon->daily_rate,
-                    'quantity'    => $days,
-                    'subtotal'    => (float)$addon->total_cost,
-                ];
-            }
-
-            // Call Billing Service to generate invoice automatically
-            Http::timeout(5)->post("{$this->billingUrl}/api/invoices", [
-                'booking_id'  => $booking->id,
-                'customer_id' => $booking->customer_id,
-                'amount'      => $booking->total_cost,
-                'due_date'    => now()->addDays(7)->toDateString(),
-                'notes'       => "Invoice generated automatically for completed booking #{$booking->id}",
-                'line_items'  => $lineItems,
-            ])->onError(fn($e) => Log::warning("Failed to generate invoice for booking {$booking->id}: " . $e->getMessage()));
         }
 
         // If booking is cancelled, free the vehicle (best-effort)

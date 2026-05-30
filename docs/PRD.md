@@ -13,7 +13,10 @@
 ---
 
 ## **1. Project Overview**
-SwiftRide ERP is a distributed Enterprise Resource Planning system designed for a regional vehicle rental and logistics company. The system manages the end-to-end business processes of fleet inventory, customer relationships, order bookings, and financial billing. 
+SwiftRide ERP is a distributed Enterprise Resource Planning system designed for a regional vehicle rental and logistics company. The system manages the end-to-end business processes of fleet inventory, customer relationships, order bookings, and financial billing.
+
+**Operational Model:**
+The core workflows (e.g., driver's license verification, upfront invoice generation, and status-based fleet allocation) are strictly modeled after real-world, industry-standard practices utilized by major car rental agencies like Enterprise Rent-A-Car and Hertz. 
 
 To ensure strict compliance with modern microservices architecture, the application is divided into five independent services. The system relies entirely on manual software updates and simulated geofencing for tracking, strictly avoiding any physical hardware or Internet of Things (IoT) integrations.
 

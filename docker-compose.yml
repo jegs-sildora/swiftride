@@ -13,6 +13,26 @@ networks:
 services:
 
   # ===========================================================
+  # DATABASE LAYER
+  # ===========================================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: swiftride_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: swiftride
+      POSTGRES_PASSWORD: swiftride
+      POSTGRES_DB: swiftride
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - swiftride_network
+
+  # ===========================================================
   # SERVICE LAYER — Laravel microservices
   # ===========================================================
 
@@ -202,3 +222,6 @@ services:
       watch:
         - action: rebuild
           path: ./frontend/src
+
+volumes:
+  postgres_data:
