@@ -10,7 +10,7 @@ require 'vendor/autoload.php';
 \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
 \$kernel->bootstrap();
 try {
-    \$schema = env('DB_SCHEMA', 'public');
+    \$schema = getenv('DB_SCHEMA') ?: 'public';
     if (\$schema && \$schema !== 'public') {
         Illuminate\Support\Facades\DB::statement('CREATE SCHEMA IF NOT EXISTS \"' . \$schema . '\"');
         echo \"Schema '\$schema' checked/created successfully.\n\";
