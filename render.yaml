@@ -19,7 +19,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_auth_db?sslmode=require
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_SCHEMA
+        value: auth
 
   # ── API Gateway Service (Public) ──────────────────────────────────────────
   - type: web
@@ -83,7 +85,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_fleet_db?sslmode=require
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_SCHEMA
+        value: fleet
 
   # ── CRM Microservice (Private) ───────────────────────────────────────────
   - type: web
@@ -102,7 +106,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_crm_db?sslmode=require
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_SCHEMA
+        value: crm
 
   # ── Booking Microservice (Private) ───────────────────────────────────────
   - type: web
@@ -121,7 +127,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_booking_db?sslmode=require
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_SCHEMA
+        value: booking
       - key: FLEET_HOSTPORT
         fromService:
           type: web
@@ -155,7 +163,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/swiftride_billing_db?sslmode=require
+        value: postgresql://neondb_owner:npg_qY9iI0yalXzB@ep-sweet-wind-aqp2o8vv.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_SCHEMA
+        value: billing
       - key: BOOKING_HOSTPORT
         fromService:
           type: web
