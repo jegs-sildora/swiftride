@@ -20,7 +20,7 @@ try {
     $path = ltrim($parsed['path'] ?? '', '/');
     
     $dbAndParams = explode('?', $path);
-    $dbname = $dbAndParams[0];
+    $dbname = 'swiftride_auth_db';
     
     echo "Connecting to Host: $host, Port: $port, DB: $dbname, User: $user\n";
     
