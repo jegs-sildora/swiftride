@@ -1,53 +1,48 @@
 <?php
 header('Content-Type: text/plain');
 
-echo "=== SWIFTRIDE DB DIAGNOSTIC ===\n";
-echo "DB_CONNECTION: " . getenv('DB_CONNECTION') . "\n";
-echo "DB_URL (masked): " . preg_replace('/:[^@]+@/', ':****@', getenv('DB_URL')) . "\n";
-echo "DB_SCHEMA: " . getenv('DB_SCHEMA') . "\n";
+echo "=== SWIFTRIDE DB DIAGNOSTIC (WITH ARTISAN RUNNER) ===\n";
+
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+echo "DB_CONNECTION: " . config('database.default') . "\n";
+echo "DB_DATABASE: " . config('database.connections.pgsql.database') . "\n";
+echo "DB_SCHEMA: " . config('database.connections.pgsql.search_path') . "\n";
 
 try {
-    $dbUrl = getenv('DB_URL');
-    if (!$dbUrl) {
-        throw new Exception("DB_URL is not set");
+    echo "\n1. Checking database connection...\n";
+    DB::connection()->getPdo();
+    echo "Database connection successful!\n";
+    
+    // Check if schema exists, create if not
+    $schema = config('database.connections.pgsql.search_path');
+    if ($schema && $schema !== 'public') {
+        DB::statement('CREATE SCHEMA IF NOT EXISTS "' . $schema . '"');
+        echo "Schema '$schema' checked/created successfully.\n";
     }
     
-    $parsed = parse_url($dbUrl);
-    $host = $parsed['host'] ?? '';
-    $port = $parsed['port'] ?? 5432;
-    $user = $parsed['user'] ?? '';
-    $pass = $parsed['pass'] ?? '';
-    $path = ltrim($parsed['path'] ?? '', '/');
+    echo "\n2. Running migrations...\n";
+    $output = '';
+    $exitCode = Artisan::call('migrate', ['--force' => true]);
+    $output .= Artisan::output();
+    echo "Migrate exit code: $exitCode\n";
+    echo "Migrate output:\n$output\n";
     
-    $dbAndParams = explode('?', $path);
-    $dbname = 'swiftride_auth_db';
-    
-    echo "Connecting to Host: $host, Port: $port, DB: $dbname, User: $user\n";
-    
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_TIMEOUT => 5
-    ]);
-    echo "Connected successfully to database $dbname!\n";
-    
-    $schema = getenv('DB_SCHEMA') ?: 'public';
-    echo "Using schema: $schema\n";
-    
-    if ($schema !== 'public') {
-        $pdo->exec("CREATE SCHEMA IF NOT EXISTS \"$schema\"");
-        echo "Schema '$schema' created/verified successfully.\n";
-    }
-    
-    $stmt = $pdo->prepare("SELECT table_name FROM information_schema.tables WHERE table_schema = :schema");
-    $stmt->execute(['schema' => $schema]);
-    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    echo "Tables in '$schema' schema: " . implode(', ', $tables) . "\n";
-    
-    $stmt = $pdo->query("SELECT datname FROM pg_database");
-    $dbs = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    echo "All databases on server: " . implode(', ', $dbs) . "\n";
+    echo "\n3. Running seeders...\n";
+    $outputSeed = '';
+    $exitCodeSeed = Artisan::call('db:seed', ['--force' => true]);
+    $outputSeed .= Artisan::output();
+    echo "Seed exit code: $exitCodeSeed\n";
+    echo "Seed output:\n$outputSeed\n";
     
 } catch (Exception $e) {
-    echo "Connection failed: " . $e->getMessage() . "\n";
+    echo "ERROR OCCURRED:\n" . $e->getMessage() . "\n";
+    echo "Trace:\n" . $e->getTraceAsString() . "\n";
 }
