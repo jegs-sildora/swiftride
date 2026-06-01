@@ -825,26 +825,39 @@ button, .btn {
   .app-layout {
     flex-direction: column;
   }
+  .menu-btn {
+    display: flex !important;
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 990;
+    animation: fadeIn 0.2s ease forwards;
+  }
   .sidebar {
-    width: 100%;
-    flex-direction: row;
-    padding: 0.75rem 1rem;
-    overflow-x: auto;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    border-right: 1px solid var(--border-color);
+    width: 280px;
+  }
+  .sidebar.open {
+    transform: translateX(0);
   }
   .nav-list {
-    flex-direction: row;
-    margin-top: 0;
-    gap: 0.5rem;
-  }
-  .nav-link {
-    white-space: nowrap;
-    padding: 0.5rem 0.75rem;
+    flex-direction: column;
+    margin-top: 2rem;
   }
   .sidebar .nav-link.active::before {
-    display: none; /* Hide vertical indicator */
+    display: block; /* Restore vertical indicator */
   }
   .main-content {
     max-width: 100%;
@@ -871,6 +884,10 @@ button, .btn {
     min-width: auto;
     max-width: 100%;
   }
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
   .modal-content, .card {
     padding: 1.25rem;
   }
@@ -889,6 +906,9 @@ button, .btn {
   }
   .page-header-text h1 {
     font-size: 1.75rem;
+  }
+  .modal-content {
+    max-height: 85vh;
   }
   .modal-footer {
     flex-direction: column;

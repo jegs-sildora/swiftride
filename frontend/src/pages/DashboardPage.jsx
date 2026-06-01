@@ -9,7 +9,7 @@ import BillingService from '../services/billingService';
 import { useToast } from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import SearchableDropdown from '../components/SearchableDropdown';
-import { Home, Truck, Users, Calendar, CreditCard, Plus, LogOut, Check, X, Wrench, FileText, DollarSign, Car, Shield, Clock, MoreVertical, Edit, Trash, AlertTriangle, Loader } from '../components/Icons';
+import { Home, Truck, Users, Calendar, CreditCard, Plus, LogOut, Check, X, Wrench, FileText, DollarSign, Car, Shield, Clock, MoreVertical, Edit, Trash, AlertTriangle, Loader, Menu } from '../components/Icons';
 
 const POPULAR_MAKES = ["TOYOTA", "NISSAN", "MITSUBISHI", "HONDA", "FORD", "MAZDA", "ISUZU", "SUZUKI", "HYUNDAI", "KIA", "MG", "BYD"];
 const POPULAR_MODELS = ["VIOS", "CIVIC", "MONTERO SPORT", "FORTUNER", "ALMERA", "NAVARA", "EVEREST", "HIACE", "ERTIGA", "MU-X", "CITY", "ACCORD"];
@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -705,7 +706,8 @@ export default function DashboardPage() {
   return (
     <div className="app-layout">
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
           <img 
             src="/logo.png" 
@@ -727,7 +729,7 @@ export default function DashboardPage() {
           <ul className="nav-list">
             {isTabVisible("overview") && (
               <li>
-                <a href="#" className={`nav-link ${activeTab === "overview" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("overview"); }}>
+                <a href="#" className={`nav-link ${activeTab === "overview" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("overview"); setIsSidebarOpen(false); }}>
                   <Home size={18} />
                   Overview
                 </a>
@@ -735,7 +737,7 @@ export default function DashboardPage() {
             )}
             {isTabVisible("fleet") && (
               <li>
-                <a href="#" className={`nav-link ${activeTab === "fleet" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("fleet"); }}>
+                <a href="#" className={`nav-link ${activeTab === "fleet" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("fleet"); setIsSidebarOpen(false); }}>
                   <Truck size={18} />
                   Fleet Manager
                 </a>
@@ -743,7 +745,7 @@ export default function DashboardPage() {
             )}
             {isTabVisible("crm") && (
               <li>
-                <a href="#" className={`nav-link ${activeTab === "crm" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("crm"); }}>
+                <a href="#" className={`nav-link ${activeTab === "crm" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("crm"); setIsSidebarOpen(false); }}>
                   <Users size={18} />
                   Customer Directory
                 </a>
@@ -751,7 +753,7 @@ export default function DashboardPage() {
             )}
             {isTabVisible("bookings") && (
               <li>
-                <a href="#" className={`nav-link ${activeTab === "bookings" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("bookings"); }}>
+                <a href="#" className={`nav-link ${activeTab === "bookings" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("bookings"); setIsSidebarOpen(false); }}>
                   <Calendar size={18} />
                   Bookings
                 </a>
@@ -759,7 +761,7 @@ export default function DashboardPage() {
             )}
             {isTabVisible("billing") && (
               <li>
-                <a href="#" className={`nav-link ${activeTab === "billing" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("billing"); }}>
+                <a href="#" className={`nav-link ${activeTab === "billing" ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setActiveTab("billing"); setIsSidebarOpen(false); }}>
                   <CreditCard size={18} />
                   Billing & Accounts
                 </a>
@@ -781,7 +783,23 @@ export default function DashboardPage() {
           marginBottom: "2rem",
           flexShrink: 0
         }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "1rem" }}>
+            <button 
+              className="menu-btn" 
+              onClick={() => setIsSidebarOpen(true)}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border-color)",
+                color: "var(--text-primary)",
+                borderRadius: "8px",
+                padding: "0.5rem",
+                cursor: "pointer",
+                display: "none" // Displayed via CSS on mobile
+              }}
+            >
+              <Menu size={20} />
+            </button>
+            <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)" }}>
               SwiftRide Operations
             </span>
