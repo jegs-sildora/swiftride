@@ -811,6 +811,7 @@ export default function DashboardPage() {
               {activeTab === "billing" && "Billing & Accounts"}
             </span>
           </div>
+          </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             {/* Elegant Header Loading Indicator */}
