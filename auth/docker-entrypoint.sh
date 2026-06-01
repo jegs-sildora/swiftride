@@ -23,10 +23,10 @@ try {
 "
 
 # Run pending database migrations on startup
-php artisan migrate --force
+# php artisan migrate --force
 
 # Seed default data (idempotent — uses upsert, safe to run on every boot)
-php artisan db:seed --force
+# php artisan db:seed --force
 
 # Start the built-in PHP server (suitable for Render Web Service)
 php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
